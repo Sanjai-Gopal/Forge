@@ -1,16 +1,12 @@
-# Forge landing page
+# Forge
 
-A landing page for **Forge**, a (concept) hackathon-driven platform for innovation
-programs, skills-based hiring, skill validation and AI capability building.
+A landing page for **Forge**, a hackathon-driven platform for innovation programs, skills-based hiring, skill validation, and AI capability building.
 
-Built as a frontend screening exercise: a HackerRank-caliber marketing page,
-themed to the hackathon / innovation domain, with a small real backend.
-
-**Stack:** Next.js 14 (App Router) · TypeScript · Tailwind CSS · zero UI libraries.
+**Stack:** Next.js 14 (App Router) · TypeScript · Tailwind CSS · zero UI libraries
 
 ---
 
-## Run it
+## Getting started
 
 ```bash
 npm install
@@ -23,28 +19,54 @@ Production build:
 npm run build && npm start
 ```
 
-Requires Node 18.17+ (Next 14). Fonts are loaded via `next/font/google`, so the
-first build needs internet access.
+Requires Node 18.17+ (Next 14). Fonts load via `next/font/google`, so the first build needs internet access.
 
 ---
 
-## The backend
+## Project structure
 
-A single route handler at `app/api/leads/route.ts` powers the "Request access"
-form:
+```
+src/
+  app/
+    layout.tsx              fonts + metadata
+    page.tsx                composes the page sections
+    globals.css             design tokens, scroll-reveal utility
+    api/
+      leads/
+        route.ts            POST + GET handlers
+  components/
+    Navbar.tsx
+    Hero.tsx
+    Manifesto.tsx
+    Features.tsx
+    HowItWorks.tsx
+    Faq.tsx
+    Waitlist.tsx
+    Footer.tsx
+    Reveal.tsx              IntersectionObserver scroll-reveal wrapper
+    icons.tsx               inline SVG icon set + wordmark
+  lib/
+    leads-store.ts          server-side validation + in-memory store
+public/
+next.config.mjs
+tailwind.config.ts
+tsconfig.json
+```
 
-- `POST /api/leads` validates name, work email, organization and intent on the
-  server, de-dupes by email, and returns `201` with an id (or `422` with
-  per-field errors).
-- `GET /api/leads` returns the current submission count (handy for a quick
-  smoke test).
+---
 
-Validation lives in `lib/leads-store.ts`, separate from the transport layer.
-Storage is an in-memory array to keep the demo dependency-free. The file is
-commented to show exactly where you'd drop in Postgres/Prisma or a hosted KV for
-production (the swap is one file and doesn't touch the route or the UI).
+## API
 
-Quick check:
+A single route handler at `src/app/api/leads/route.ts` powers the waitlist form.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/leads` | Validates name, work email, organization, and intent. De-dupes by email. Returns `201` with an id, or `422` with per-field errors. |
+| `GET`  | `/api/leads` | Returns the current submission count (quick smoke test). |
+
+Validation is in `src/lib/leads-store.ts`, separated from the transport layer. Storage is an in-memory array to keep the demo dependency-free — the file is documented to show exactly where you'd swap in Postgres/Prisma or a hosted KV without touching the route or the UI.
+
+Quick test:
 
 ```bash
 curl -X POST localhost:3000/api/leads \
@@ -54,37 +76,11 @@ curl -X POST localhost:3000/api/leads \
 
 ---
 
-## Structure
+## Design notes
 
-```
-app/
-  layout.tsx          fonts + metadata
-  page.tsx            composes the sections
-  globals.css         design tokens, scroll-reveal utility
-  api/leads/route.ts  POST + GET handlers
-components/
-  Navbar  Hero  Manifesto  Features
-  HowItWorks  Faq  Waitlist  Footer
-  Reveal.tsx          IntersectionObserver scroll reveals
-  icons.tsx           inline SVG icon set + wordmark
-lib/
-  leads-store.ts      validation + in-memory store
-```
-
-## Notes on the design
-
-- **Type:** Bricolage Grotesque (display) / Hanken Grotesk (body) / JetBrains
-  Mono (labels & code), to avoid generic defaults.
-- **Palette:** near-black ink + warm off-white, one acid-lime accent used
-  sparingly. CSS variables + a small Tailwind token set keep it consistent.
-- **Product mockups** are built in pure HTML/CSS (no screenshots), so nothing
-  is a static image and everything is responsive.
-- **Motion** is restrained: one staggered hero reveal plus subtle on-scroll
-  fades, all disabled under `prefers-reduced-motion`.
-Forge is a concept, so the page deliberately has no fake social proof: no
-invented client logos, no made-up testimonials, no fabricated impact stats. The
-sample data inside the product mockups is just that, placeholder UI to show what
-the interface would look like.
-
-Accessibility: semantic landmarks, labelled controls, visible keyboard focus
-rings, `aria-invalid` on errored fields, and reduced-motion support.
+- **Type:** Bricolage Grotesque (display) / Hanken Grotesk (body) / JetBrains Mono (labels & code)
+- **Palette:** near-black ink + warm off-white, one acid-lime accent used sparingly. CSS variables + a small Tailwind token set keep it consistent.
+- **Mockups:** built in pure HTML/CSS — no screenshots, fully responsive.
+- **Motion:** staggered hero reveal + subtle on-scroll fades, all disabled under `prefers-reduced-motion`.
+- **No fake social proof:** no invented logos, testimonials, or fabricated stats. Placeholder UI only.
+- **Accessibility:** semantic landmarks, labelled controls, visible focus rings, `aria-invalid` on errored fields, reduced-motion support.
