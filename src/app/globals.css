@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ring: #c7f23c;
+  /* signature gradient: acid-lime -> aqua -> cyan (HackerRank-style light band) */
+  --grad: linear-gradient(95deg, #c7f23c 0%, #4fe6b0 46%, #1fc9f5 100%);
+  --grad-soft: linear-gradient(95deg, rgba(199, 242, 60, 0.9), rgba(31, 201, 245, 0.85));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: #f5f6f4;
+  color: #0a0a0b;
+  font-feature-settings: "ss01", "cv01";
+}
+
+::selection {
+  background: #c7f23c;
+  color: #0a0a0b;
+}
+
+/* Thin custom focus ring for keyboard users only */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-page px-6 sm:px-8;
+  }
+
+  /* eyebrow / kicker label */
+  .kicker {
+    @apply font-mono text-[11px] uppercase tracking-[0.22em] text-muted;
+  }
+
+  /* primary pill button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3
+           text-sm font-medium text-paper transition-all duration-200
+           hover:bg-ink-soft hover:-translate-y-px active:translate-y-0;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3
+           text-sm font-semibold text-ink transition-all duration-200
+           hover:-translate-y-px active:translate-y-0;
+    background-image: var(--grad);
+    box-shadow: 0 8px 26px -8px rgba(31, 201, 245, 0.5),
+      0 2px 8px -2px rgba(199, 242, 60, 0.4);
+  }
+  .btn-accent:hover {
+    filter: brightness(1.05) saturate(1.05);
+    box-shadow: 0 12px 32px -8px rgba(31, 201, 245, 0.6),
+      0 3px 10px -2px rgba(199, 242, 60, 0.5);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15
+           px-6 py-3 text-sm font-medium text-ink transition-colors duration-200
+           hover:border-ink/40 hover:bg-ink/[0.03];
+  }
+
+  .btn-ghost-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/15
+           px-6 py-3 text-sm font-medium text-paper transition-colors duration-200
+           hover:border-white/40 hover:bg-white/[0.04];
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* gradient text for accent words */
+  .grad-text {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* the luminous horizontal light-band that edges dark sections */
+  .glow-line {
+    height: 2px;
+    background: var(--grad);
+    box-shadow: 0 0 24px 2px rgba(79, 230, 176, 0.55),
+      0 0 60px 8px rgba(31, 201, 245, 0.35);
+  }
+
+  /* large soft bloom behind/around content */
+  .bloom {
+    filter: blur(70px);
+    background: var(--grad);
+  }
+
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--grad);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  /* faint dotted grid used inside dark product panels */
+  .dotgrid {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  .dotgrid-light {
+    background-image: radial-gradient(rgba(10, 10, 11, 0.06) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  /* scroll reveal: starts hidden, .is-visible (set by IntersectionObserver) reveals */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-marquee {
+    animation: none !important;
+  }
+}
