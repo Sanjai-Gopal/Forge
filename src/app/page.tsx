@@ -1,5 +1,8 @@
+import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import LivePlatformStats from "@/components/LivePlatformStats";
+import LivePlatformStatsSkeleton from "@/components/LivePlatformStatsSkeleton";
 import Manifesto from "@/components/Manifesto";
 import Features from "@/components/Features";
 import HowItWorks from "@/components/HowItWorks";
@@ -9,9 +12,12 @@ import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main className="bg-paper">
+    <main id="main-content" className="bg-paper transition-colors duration-300 dark:bg-ink">
       <Navbar />
       <Hero />
+      <Suspense fallback={<LivePlatformStatsSkeleton />}>
+        <LivePlatformStats />
+      </Suspense>
       <Manifesto />
       <Features />
       <HowItWorks />

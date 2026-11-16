@@ -7,21 +7,24 @@ export default function Hero() {
       {/* atmosphere */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 dotgrid-light opacity-50"
+        className="pointer-events-none absolute inset-0 -z-10 dotgrid-light opacity-50 dark:opacity-30"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-32 left-[18%] -z-10 h-[360px] w-[460px] -translate-x-1/2 rounded-full bg-accent/40 blur-[120px]"
+        className="pointer-events-none absolute -top-32 left-[18%] -z-10 h-[360px] w-[460px] -translate-x-1/2 rounded-full bg-accent/40 blur-[120px] dark:bg-accent/20"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 right-[14%] -z-10 h-[340px] w-[440px] translate-x-1/2 rounded-full bg-[#1fc9f5]/30 blur-[130px]"
+        className="pointer-events-none absolute -top-24 right-[14%] -z-10 h-[340px] w-[440px] translate-x-1/2 rounded-full bg-[#1fc9f5]/30 blur-[130px] dark:bg-[#1fc9f5]/15"
       />
 
       <div className="shell pb-16 pt-20 text-center sm:pt-24">
         <p className="kicker animate-fade-up">Hackathon-driven talent platform</p>
 
-        <h1 className="mx-auto mt-6 max-w-4xl text-balance font-display text-5xl font-extrabold leading-[0.98] tracking-tightest text-ink animate-fade-up sm:text-6xl md:text-7xl" style={{ animationDelay: "60ms" }}>
+        <h1
+          className="mx-auto mt-6 max-w-4xl text-balance font-display text-5xl font-extrabold leading-[0.98] tracking-tightest text-ink transition-colors dark:text-paper sm:text-6xl md:text-7xl animate-fade-up"
+          style={{ animationDelay: "60ms" }}
+        >
           Where talent and ideas{" "}
           <span className="relative whitespace-nowrap">
             <span className="grad-text">get built</span>
@@ -33,13 +36,19 @@ export default function Hero() {
           .
         </h1>
 
-        <p className="mx-auto mt-8 max-w-2xl text-balance text-lg leading-relaxed text-ink/65 animate-fade-up" style={{ animationDelay: "120ms" }}>
+        <p
+          className="mx-auto mt-8 max-w-2xl text-balance text-lg leading-relaxed text-ink/65 transition-colors dark:text-paper/70 animate-fade-up"
+          style={{ animationDelay: "120ms" }}
+        >
           Post your hardest problem as a live challenge and watch people
           actually build solutions to it. You see the work before you hire, so
           skill speaks louder than the résumé.
         </p>
 
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 animate-fade-up sm:flex-row" style={{ animationDelay: "180ms" }}>
+        <div
+          className="mt-10 flex flex-col items-center justify-center gap-3 animate-fade-up sm:flex-row"
+          style={{ animationDelay: "180ms" }}
+        >
           <a href="#waitlist" className="btn-accent w-full sm:w-auto">
             Start a program
             <ArrowRight width={16} height={16} />
@@ -61,7 +70,7 @@ export default function Hero() {
 function HeroPanel() {
   return (
     <div className="relative mx-auto max-w-5xl">
-      <div className="overflow-hidden rounded-xl2 border border-ink/10 bg-ink shadow-[0_40px_120px_-40px_rgba(10,10,11,0.55)]">
+      <div className="overflow-hidden rounded-xl2 border border-ink/10 bg-ink shadow-[0_40px_120px_-40px_rgba(10,10,11,0.55)] dark:border-ink-line dark:shadow-[0_40px_120px_-40px_rgba(0,0,0,0.8)]">
         {/* window chrome */}
         <div className="flex items-center gap-2 border-b border-ink-line px-5 py-3.5">
           <span className="h-2.5 w-2.5 rounded-full bg-white/15" />

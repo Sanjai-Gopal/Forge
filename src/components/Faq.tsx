@@ -47,26 +47,37 @@ export default function Faq() {
         <div className="mx-auto mt-14 max-w-2xl divide-y divide-ink-line border-y border-ink-line">
           {faqs.map((f, i) => {
             const isOpen = open === i;
+            const questionId = `faq-question-${i}`;
+            const answerId = `faq-answer-${i}`;
+
             return (
               <div key={f.q}>
-                <button
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  aria-expanded={isOpen}
-                  className="flex w-full items-center justify-between gap-6 py-5 text-left"
-                >
-                  <span className="font-display text-lg font-semibold text-paper">{f.q}</span>
-                  <span
-                    className={`flex h-7 w-7 flex-none items-center justify-center rounded-full border border-ink-line text-paper/70 transition-transform duration-300 ${
-                      isOpen ? "rotate-45" : ""
-                    }`}
-                    aria-hidden
+                <h3>
+                  <button
+                    id={questionId}
+                    type="button"
+                    onClick={() => setOpen(isOpen ? null : i)}
+                    aria-expanded={isOpen}
+                    aria-controls={answerId}
+                    className="flex w-full items-center justify-between gap-6 py-5 text-left transition-colors focus-visible:rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </span>
-                </button>
+                    <span className="font-display text-lg font-semibold text-paper">{f.q}</span>
+                    <span
+                      className={`flex h-7 w-7 flex-none items-center justify-center rounded-full border border-ink-line text-paper/70 transition-transform duration-300 ${
+                        isOpen ? "rotate-45" : ""
+                      }`}
+                      aria-hidden="true"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                    </span>
+                  </button>
+                </h3>
                 <div
+                  id={answerId}
+                  role="region"
+                  aria-labelledby={questionId}
                   className="grid transition-all duration-300 ease-out"
                   style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                 >
