@@ -14,7 +14,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
   if (!mounted) {
     return (
       <div
-        className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 dark:border-white/20 ${className}`}
+        className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 dark:border-white/20 ${className}`}
         aria-hidden="true"
       >
         <span className="h-4 w-4" />
@@ -29,11 +29,9 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
       type="button"
       onClick={toggleTheme}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
-      title={`Switch to ${isDark ? "light" : "dark"} mode`}
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink/15 bg-paper/60 text-ink transition-colors hover:border-ink/40 hover:bg-ink/5 dark:border-white/20 dark:bg-ink-soft dark:text-paper dark:hover:border-white/40 dark:hover:bg-white/10 ${className}`}
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 bg-paper/60 text-ink transition-colors hover:border-ink/40 hover:bg-ink/5 dark:border-white/20 dark:bg-ink-soft dark:text-paper dark:hover:border-white/40 dark:hover:bg-white/10 ${className}`}
     >
       {isDark ? (
-        // Sun icon for dark mode (click to go light)
         <svg
           width="18"
           height="18"
@@ -56,7 +54,6 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
           <path d="m19.07 4.93-1.41 1.41" />
         </svg>
       ) : (
-        // Moon icon for light mode (click to go dark)
         <svg
           width="18"
           height="18"

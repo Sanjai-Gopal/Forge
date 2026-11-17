@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
-import { ThemeProvider, themeInitScript } from "@/components/ThemeProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { themeInitScript } from "@/lib/theme-script";
+import { SITE_URL, SITE_CONFIG } from "@/lib/constants";
 import "./globals.css";
 
 const display = Bricolage_Grotesque({
@@ -34,15 +36,15 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Forge | Where talent and ideas get built",
-  description:
-    "Forge is a hackathon platform for innovation programs, skills-based hiring, and AI upskilling. Post a problem as a live challenge and hire people from the work they actually do.",
-  metadataBase: new URL("https://forge.example.com"),
+  title: `${SITE_CONFIG.name} | ${SITE_CONFIG.tagline}`,
+  description: SITE_CONFIG.description,
+  metadataBase: new URL(SITE_URL),
   openGraph: {
-    title: "Forge | Where talent and ideas get built",
+    title: `${SITE_CONFIG.name} | ${SITE_CONFIG.tagline}`,
     description:
       "Hackathon-driven innovation and skills-based hiring. Post a challenge, see the work, hire the people who built it well.",
     type: "website",
+    url: SITE_URL,
   },
 };
 

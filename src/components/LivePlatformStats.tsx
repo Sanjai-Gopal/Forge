@@ -5,40 +5,34 @@ export default async function LivePlatformStats() {
 
   const metrics = [
     {
-      label: "Active Challenges",
-      value: telemetry.activeChallenges.toString(),
-      sub: "Global hackathons live",
+      label: "Early Access Queue",
+      value: telemetry.waitlistRegistrations.toString(),
+      sub: "Live waitlist signups",
       highlight: true,
     },
     {
-      label: "Verified Builders",
-      value: telemetry.totalBuilders.toLocaleString(),
-      sub: "Benchmarked skills",
+      label: "Challenge Tracks",
+      value: `${telemetry.challengeTracks} Tracks`,
+      sub: "Innovation, Hiring, Skill, AI",
       highlight: false,
     },
     {
-      label: "Automated Evals",
-      value: telemetry.codeEvalsCompleted.toLocaleString(),
-      sub: "Test suites executed",
+      label: "Auto-Eval Test Cases",
+      value: `${telemetry.simulatedTestCases} cases`,
+      sub: "Automated verification suite",
       highlight: false,
     },
     {
-      label: "p95 Latency",
-      value: `${telemetry.avgP95LatencyMs}ms`,
-      sub: "Sub-second grading",
-      highlight: false,
-    },
-    {
-      label: "Waitlist Queue",
-      value: telemetry.waitlistCount.toString(),
-      sub: "Early program partners",
+      label: "Target p95 Latency",
+      value: `< ${telemetry.benchmarkP95LatencyMs}ms`,
+      sub: "Grading performance target",
       highlight: false,
     },
   ];
 
   return (
     <section
-      aria-label="Live platform telemetry"
+      aria-label="Platform telemetry and prototype benchmarks"
       className="shell my-12"
     >
       <div className="relative overflow-hidden rounded-2xl border border-ink/10 bg-paper-card p-6 shadow-[0_20px_50px_-20px_rgba(10,10,11,0.08)] transition-colors dark:border-ink-line dark:bg-ink-soft dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
@@ -48,23 +42,23 @@ export default async function LivePlatformStats() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-ink/10 pb-4 dark:border-ink-line">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+              <span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-accent opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
             </span>
             <span className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-ink dark:text-paper">
-              Live Platform Telemetry
+              Platform Telemetry
             </span>
             <span className="rounded-full bg-accent/20 px-2 py-0.5 font-mono text-[10px] font-medium text-ink dark:text-accent">
-              STREAMING SSR
+              Prototype Metrics
             </span>
           </div>
 
           <div className="font-mono text-[11px] text-muted dark:text-muted-dark">
-            Continuous verification loop · Synced
+            Connected to lead store · Real-time streaming
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-5">
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {metrics.map((m) => (
             <div
               key={m.label}

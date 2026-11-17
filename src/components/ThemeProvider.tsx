@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { THEME_STORAGE_KEY } from "@/lib/theme-script";
 
 type Theme = "light" | "dark" | "system";
 
@@ -19,32 +20,22 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_KEY = "forge-theme";
-
-export const themeInitScript = `
-(function() {
-  try {
-    var stored = localStorage.getItem('${STORAGE_KEY}');
-    var mql = window.matchMedia('(prefers-color-scheme: dark)');
-    var isDark = stored === 'dark' || (!stored && mql.matches);
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  } catch (e) {}
-})();
-`;
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const initialTheme: Theme = saved || "system";
-    setThemeState(initialTheme);
+    let saved: Theme = "system";
+    try {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored === "light" || stored === "dark") {
+        saved = stored;
+      }
+    } catch {
+      saved = "system";
+    }
+    setThemeState(saved);
 
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
     const computeResolved = (t: Theme): "light" | "dark" => {
@@ -53,7 +44,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       return mql.matches ? "dark" : "light";
     };
 
-    const currentResolved = computeResolved(initialTheme);
+    const currentResolved = computeResolved(saved);
     setResolvedTheme(currentResolved);
     if (currentResolved === "dark") {
       document.documentElement.classList.add("dark");
@@ -62,29 +53,55 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
 
     const handler = () => {
-      if ((localStorage.getItem(STORAGE_KEY) || "system") === "system") {
+      let activeTheme: Theme = "system";
+      try {
+        const stored = localStorage.getItem(THEME_STORAGE_KEY);
+        if (stored === "light" || stored === "dark") {
+          activeTheme = stored;
+        }
+      } catch {
+        activeTheme = "system";
+      }
+
+      if (activeTheme === "system") {
         const next = mql.matches ? "dark" : "light";
         setResolvedTheme(next);
         document.documentElement.classList.toggle("dark", next === "dark");
       }
     };
 
-    mql.addEventListener("change", handler);
+    if (mql.addEventListener) {
+      mql.addEventListener("change", handler);
+    } else if ((mql as unknown as { addListener?: (fn: () => void) => void }).addListener) {
+      (mql as unknown as { addListener: (fn: () => void) => void }).addListener(handler);
+    }
+
     setMounted(true);
-    return () => mql.removeEventListener("change", handler);
+
+    return () => {
+      if (mql.removeEventListener) {
+        mql.removeEventListener("change", handler);
+      } else if ((mql as unknown as { removeListener?: (fn: () => void) => void }).removeListener) {
+        (mql as unknown as { removeListener: (fn: () => void) => void }).removeListener(handler);
+      }
+    };
   }, []);
 
   const setTheme = (nextTheme: Theme) => {
     setThemeState(nextTheme);
-    if (nextTheme === "system") {
-      localStorage.removeItem(STORAGE_KEY);
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setResolvedTheme(isDark ? "dark" : "light");
-      document.documentElement.classList.toggle("dark", isDark);
-    } else {
-      localStorage.setItem(STORAGE_KEY, nextTheme);
-      setResolvedTheme(nextTheme);
-      document.documentElement.classList.toggle("dark", nextTheme === "dark");
+    try {
+      if (nextTheme === "system") {
+        localStorage.removeItem(THEME_STORAGE_KEY);
+        const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        setResolvedTheme(isDark ? "dark" : "light");
+        document.documentElement.classList.toggle("dark", isDark);
+      } else {
+        localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+        setResolvedTheme(nextTheme);
+        document.documentElement.classList.toggle("dark", nextTheme === "dark");
+      }
+    } catch {
+      // Storage unavailable or disabled
     }
   };
 

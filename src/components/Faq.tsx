@@ -78,6 +78,7 @@ export default function Faq() {
                   id={answerId}
                   role="region"
                   aria-labelledby={questionId}
+                  aria-hidden={!isOpen}
                   className="grid transition-all duration-300 ease-out"
                   style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                 >

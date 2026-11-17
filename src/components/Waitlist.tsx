@@ -24,6 +24,7 @@ export default function Waitlist() {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const orgInputRef = useRef<HTMLInputElement>(null);
+  const radioRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -50,7 +51,7 @@ export default function Waitlist() {
         setMessage(data.message ?? "Please resolve the highlighted fields.");
         setStatus("error");
 
-        // Focus the first invalid field for accessibility
+        // Programmatically focus the first invalid field for assistive tech
         if (fieldErrors.name && nameInputRef.current) {
           nameInputRef.current.focus();
         } else if (fieldErrors.email && emailInputRef.current) {
@@ -75,14 +76,18 @@ export default function Waitlist() {
   ];
 
   const handleIntentKeyDown = (e: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    let nextIndex = currentIndex;
     if (e.key === "ArrowRight" || e.key === "ArrowDown") {
       e.preventDefault();
-      const nextIndex = (currentIndex + 1) % intents.length;
-      update("intent", intents[nextIndex].id);
+      nextIndex = (currentIndex + 1) % intents.length;
     } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
       e.preventDefault();
-      const prevIndex = (currentIndex - 1 + intents.length) % intents.length;
-      update("intent", intents[prevIndex].id);
+      nextIndex = (currentIndex - 1 + intents.length) % intents.length;
+    }
+
+    if (nextIndex !== currentIndex) {
+      update("intent", intents[nextIndex].id);
+      radioRefs.current[nextIndex]?.focus();
     }
   };
 
@@ -172,6 +177,9 @@ export default function Waitlist() {
                           <button
                             type="button"
                             key={it.id}
+                            ref={(el) => {
+                              radioRefs.current[idx] = el;
+                            }}
                             role="radio"
                             aria-checked={isSelected}
                             tabIndex={isSelected ? 0 : -1}
@@ -194,7 +202,7 @@ export default function Waitlist() {
                     id="waitlist-name"
                     name="name"
                     label="Full name"
-                    ref={nameInputRef}
+                    inputRef={nameInputRef}
                     error={errors.name}
                     value={form.name}
                     onChange={(v) => update("name", v)}
@@ -206,7 +214,7 @@ export default function Waitlist() {
                     id="waitlist-email"
                     name="email"
                     label="Work email"
-                    ref={emailInputRef}
+                    inputRef={emailInputRef}
                     type="email"
                     error={errors.email}
                     value={form.email}
@@ -219,7 +227,7 @@ export default function Waitlist() {
                     id="waitlist-organization"
                     name="organization"
                     label={form.intent === "company" ? "Company name" : "Where you build / study"}
-                    ref={orgInputRef}
+                    inputRef={orgInputRef}
                     error={errors.organization}
                     value={form.organization}
                     onChange={(v) => update("organization", v)}
@@ -280,7 +288,7 @@ interface FieldProps {
   placeholder?: string;
   autoComplete?: string;
   required?: boolean;
-  ref?: React.Ref<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement>;
 }
 
 function Field({
@@ -294,7 +302,7 @@ function Field({
   placeholder,
   autoComplete,
   required = false,
-  ref,
+  inputRef,
 }: FieldProps) {
   const errorId = `${id}-error`;
 
@@ -305,7 +313,7 @@ function Field({
         {required && <span className="ml-0.5 text-accent" aria-hidden="true">*</span>}
       </label>
       <input
-        ref={ref}
+        ref={inputRef}
         id={id}
         name={name}
         type={type}

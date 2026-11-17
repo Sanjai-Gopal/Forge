@@ -1,30 +1,27 @@
 import { leadCount } from "./leads-store";
 
 export interface PlatformTelemetry {
-  activeChallenges: number;
-  totalBuilders: number;
-  codeEvalsCompleted: number;
-  avgP95LatencyMs: number;
-  waitlistCount: number;
+  waitlistRegistrations: number;
+  benchmarkP95LatencyMs: number;
+  challengeTracks: number;
+  simulatedTestCases: number;
+  isPrototype: boolean;
   timestamp: string;
 }
 
 /**
- * Retrieves real-time platform telemetry for Server Component streaming.
- * In production this queries production time-series DB / Redis cache.
+ * Retrieves platform telemetry and prototype benchmark indicators.
+ * Dynamic metrics reflect real submissions via in-memory leadCount().
  */
 export async function getPlatformTelemetry(): Promise<PlatformTelemetry> {
-  // Simulate lightweight async streaming delay (60ms) to demonstrate Next.js App Router Suspense streaming
-  await new Promise((resolve) => setTimeout(resolve, 60));
-
   const count = leadCount();
 
   return {
-    activeChallenges: 18,
-    totalBuilders: 3840 + count,
-    codeEvalsCompleted: 24190 + count * 3,
-    avgP95LatencyMs: 64,
-    waitlistCount: count,
+    waitlistRegistrations: count,
+    benchmarkP95LatencyMs: 64,
+    challengeTracks: 4,
+    simulatedTestCases: 412,
+    isPrototype: true,
     timestamp: new Date().toISOString(),
   };
 }

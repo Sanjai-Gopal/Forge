@@ -122,9 +122,17 @@ describe("leads-store: storage and deduplication", () => {
     expect(leadCount()).toBe(initialCount + 1);
   });
 
-  it("lists all submitted leads correctly", () => {
+  it("lists all submitted leads correctly in self-contained test", () => {
+    const uniqueEmail = `self_contained_${Date.now()}@unit-test.org`;
+    const lead = addLead({
+      name: "John von Neumann",
+      email: uniqueEmail,
+      organization: "IAS Princeton",
+      intent: "builder",
+    });
+
     const leads = listLeads();
     expect(Array.isArray(leads)).toBe(true);
-    expect(leads.length).toBeGreaterThan(0);
+    expect(leads).toContainEqual(lead);
   });
 });

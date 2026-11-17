@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
+import { SITE_CONFIG } from "@/lib/constants";
 
 export const runtime = "edge";
-export const alt = "Forge | Where talent and ideas get built";
+export const alt = `${SITE_CONFIG.name} | ${SITE_CONFIG.tagline}`;
 export const size = {
   width: 1200,
   height: 630,
@@ -53,7 +54,7 @@ export default async function Image() {
             F
           </div>
           <span style={{ fontSize: "36px", fontWeight: 800, letterSpacing: "-0.04em" }}>
-            Forge
+            {SITE_CONFIG.name}
           </span>
         </div>
 
@@ -78,7 +79,7 @@ export default async function Image() {
               maxWidth: "1000px",
             }}
           >
-            Where talent and ideas get built.
+            {SITE_CONFIG.tagline}
           </div>
           <div style={{ fontSize: "24px", color: "#9A9AA2", maxWidth: "880px" }}>
             Post your hardest problem as a live challenge. Hire from the work, not the résumé.

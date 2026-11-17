@@ -1,21 +1,45 @@
 import { Logo, LinkedInIcon, XIcon } from "./icons";
 
-const columns = [
+interface FooterColumn {
+  title: string;
+  links: { label: string; href?: string }[];
+}
+
+const columns: FooterColumn[] = [
   {
     title: "Platform",
-    links: ["Innovation hackathons", "Hiring hackathons", "Skill validation", "AI capacity building"],
+    links: [
+      { label: "Innovation hackathons", href: "#platform" },
+      { label: "Hiring hackathons", href: "#builders" },
+      { label: "Skill validation", href: "#platform" },
+      { label: "AI capacity building", href: "#platform" },
+    ],
   },
   {
-    title: "Company",
-    links: ["About", "Customers", "Careers", "Contact"],
+    title: "Program",
+    links: [
+      { label: "How it works", href: "#outcomes" },
+      { label: "Questions & FAQ", href: "#faq" },
+      { label: "For builders", href: "#builders" },
+      { label: "Request walkthrough", href: "#waitlist" },
+    ],
   },
   {
     title: "Resources",
-    links: ["Blog", "Guides", "Challenge library", "Status"],
+    links: [
+      { label: "Challenge library" },
+      { label: "Guides & documentation" },
+      { label: "Security & integrity" },
+      { label: "System status" },
+    ],
   },
   {
     title: "Get started",
-    links: ["Book a demo", "For builders", "Pricing", "Sign in"],
+    links: [
+      { label: "Early access waitlist", href: "#waitlist" },
+      { label: "Sign in", href: "#waitlist" },
+      { label: "Contact program team", href: "#waitlist" },
+    ],
   },
 ];
 
@@ -32,19 +56,15 @@ export default function Footer() {
             </p>
             <div className="mt-6 flex items-center gap-3">
               <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Forge on LinkedIn"
+                href="#top"
+                aria-label="Forge on LinkedIn (Prototype)"
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink-line text-paper/70 transition-colors hover:border-accent hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <LinkedInIcon width={18} height={18} />
               </a>
               <a
-                href="https://x.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Forge on X"
+                href="#top"
+                aria-label="Forge on X (Prototype)"
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink-line text-paper/70 transition-colors hover:border-accent hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <XIcon width={17} height={17} />
@@ -59,13 +79,19 @@ export default function Footer() {
               </p>
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((l) => (
-                  <li key={l}>
-                    <a
-                      href="#waitlist"
-                      className="text-sm text-paper/70 transition-colors hover:text-paper focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    >
-                      {l}
-                    </a>
+                  <li key={l.label}>
+                    {l.href ? (
+                      <a
+                        href={l.href}
+                        className="text-sm text-paper/70 transition-colors hover:text-paper focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        {l.label}
+                      </a>
+                    ) : (
+                      <span className="text-sm text-paper/40 cursor-default">
+                        {l.label}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -78,15 +104,9 @@ export default function Footer() {
             © {new Date().getFullYear()} Forge. Built for IEEE IGDTUW Open Source Week 10.0.
           </p>
           <div className="flex items-center gap-6 text-xs text-muted-dark">
-            <a href="#top" className="hover:text-paper focus-visible:rounded-sm">
-              Privacy
-            </a>
-            <a href="#top" className="hover:text-paper focus-visible:rounded-sm">
-              Terms
-            </a>
-            <a href="#top" className="hover:text-paper focus-visible:rounded-sm">
-              Security
-            </a>
+            <span className="hover:text-paper cursor-default">Privacy Policy</span>
+            <span className="hover:text-paper cursor-default">Terms of Service</span>
+            <span className="hover:text-paper cursor-default">Security</span>
           </div>
         </div>
       </div>

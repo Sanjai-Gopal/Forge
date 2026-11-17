@@ -75,35 +75,36 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {open && (
-        <div
-          id="mobile-navigation"
-          className="border-t border-ink/10 bg-paper shadow-lg dark:border-white/10 dark:bg-ink md:hidden"
-        >
-          <div className="shell flex flex-col gap-1 py-4">
-            {links.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-3 text-base font-medium text-ink/80 hover:bg-ink/5 dark:text-paper/80 dark:hover:bg-white/5"
-              >
-                {l.label}
-              </a>
-            ))}
-            <div className="mt-2 pt-2 border-t border-ink/10 dark:border-white/10">
-              <a
-                href="#waitlist"
-                onClick={() => setOpen(false)}
-                className="btn-accent w-full"
-              >
-                Get started
-                <ArrowRight width={16} height={16} />
-              </a>
-            </div>
+      <div
+        id="mobile-navigation"
+        aria-hidden={!open}
+        className={`border-t border-ink/10 bg-paper shadow-lg dark:border-white/10 dark:bg-ink md:hidden ${
+          open ? "block" : "hidden"
+        }`}
+      >
+        <div className="shell flex flex-col gap-1 py-4">
+          {links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              onClick={() => setOpen(false)}
+              className="rounded-lg px-3 py-3 text-base font-medium text-ink/80 hover:bg-ink/5 dark:text-paper/80 dark:hover:bg-white/5"
+            >
+              {l.label}
+            </a>
+          ))}
+          <div className="mt-2 pt-2 border-t border-ink/10 dark:border-white/10">
+            <a
+              href="#waitlist"
+              onClick={() => setOpen(false)}
+              className="btn-accent w-full"
+            >
+              Get started
+              <ArrowRight width={16} height={16} />
+            </a>
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }
