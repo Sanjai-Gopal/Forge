@@ -97,7 +97,7 @@ export default async function Image() {
             color: "#6C6C72",
           }}
         >
-          <span>forge.example.com</span>
+          <span>{new URL(SITE_URL).host}</span>
           <span style={{ color: "#C7F23C" }}>IEEE IGDTUW Open Source Week 10.0</span>
         </div>
       </div>

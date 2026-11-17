@@ -13,19 +13,19 @@ export default async function LivePlatformStats() {
     {
       label: "Challenge Tracks",
       value: `${telemetry.challengeTracks} Tracks`,
-      sub: "Innovation, Hiring, Skill, AI",
+      sub: "Curated launch tracks",
       highlight: false,
     },
     {
-      label: "Auto-Eval Test Cases",
-      value: `${telemetry.simulatedTestCases} cases`,
-      sub: "Automated verification suite",
+      label: "Auto-Eval Target",
+      value: "Pre-launch",
+      sub: "Verification suite target",
       highlight: false,
     },
     {
-      label: "Target p95 Latency",
+      label: "Target SLA Latency",
       value: `< ${telemetry.benchmarkP95LatencyMs}ms`,
-      sub: "Grading performance target",
+      sub: "Architecture latency goal",
       highlight: false,
     },
   ];
@@ -54,7 +54,7 @@ export default async function LivePlatformStats() {
           </div>
 
           <div className="font-mono text-[11px] text-muted dark:text-muted-dark">
-            Connected to lead store · Real-time streaming
+            Live waitlist feed · Prototype architecture targets
           </div>
         </div>
 
