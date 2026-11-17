@@ -1,23 +1,28 @@
 import { describe, it, expect } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, POST } from "../route";
+import { leadCount } from "@/lib/leads-store";
 
 describe("/api/leads route handler", () => {
-  it("GET returns current submission count", async () => {
+  it("GET returns current submission count matching the store", async () => {
+    const expectedCount = leadCount();
     const res = await GET();
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.ok).toBe(true);
-    expect(typeof data.count).toBe("number");
+    expect(data.count).toBe(expectedCount);
   });
 
-  it("POST returns 201 on valid submission", async () => {
+  it("POST stores new lead, returns 201, and increments lead count by one", async () => {
+    const beforeCount = leadCount();
+    const uniqueEmail = `rosalind_${Date.now()}_${Math.random().toString(36).slice(2, 6)}@dna.ac.uk`;
+
     const req = new NextRequest("http://localhost:3000/api/leads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: "Rosalind Franklin",
-        email: `rosalind_${Date.now()}@dna.ac.uk`,
+        email: uniqueEmail,
         organization: "King's College London",
         intent: "builder",
       }),
@@ -28,6 +33,9 @@ describe("/api/leads route handler", () => {
     const data = await res.json();
     expect(data.ok).toBe(true);
     expect(data.id).toMatch(/^ld_/);
+
+    const afterCount = leadCount();
+    expect(afterCount).toBe(beforeCount + 1);
   });
 
   it("POST returns 422 with field errors on invalid submission", async () => {

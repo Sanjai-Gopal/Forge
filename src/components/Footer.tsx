@@ -88,7 +88,7 @@ export default function Footer() {
                         {l.label}
                       </a>
                     ) : (
-                      <span className="text-sm text-paper/40 cursor-default">
+                      <span className="text-sm text-paper/60 cursor-default">
                         {l.label}
                       </span>
                     )}

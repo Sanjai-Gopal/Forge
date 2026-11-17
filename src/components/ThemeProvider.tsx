@@ -20,6 +20,18 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function updateMetaThemeColor(resolved: "light" | "dark") {
+  if (typeof document === "undefined") return;
+  const color = resolved === "dark" ? "#0a0a0b" : "#f5f6f4";
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("name", "theme-color");
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content", color);
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
@@ -46,6 +58,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     const currentResolved = computeResolved(saved);
     setResolvedTheme(currentResolved);
+    updateMetaThemeColor(currentResolved);
+
     if (currentResolved === "dark") {
       document.documentElement.classList.add("dark");
     } else {
@@ -66,6 +80,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (activeTheme === "system") {
         const next = mql.matches ? "dark" : "light";
         setResolvedTheme(next);
+        updateMetaThemeColor(next);
         document.documentElement.classList.toggle("dark", next === "dark");
       }
     };
@@ -90,16 +105,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = (nextTheme: Theme) => {
     setThemeState(nextTheme);
     try {
+      let nextResolved: "light" | "dark" = "light";
       if (nextTheme === "system") {
         localStorage.removeItem(THEME_STORAGE_KEY);
         const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        setResolvedTheme(isDark ? "dark" : "light");
+        nextResolved = isDark ? "dark" : "light";
+        setResolvedTheme(nextResolved);
         document.documentElement.classList.toggle("dark", isDark);
       } else {
         localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+        nextResolved = nextTheme;
         setResolvedTheme(nextTheme);
         document.documentElement.classList.toggle("dark", nextTheme === "dark");
       }
+      updateMetaThemeColor(nextResolved);
     } catch {
       // Storage unavailable or disabled
     }
