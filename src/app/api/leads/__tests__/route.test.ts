@@ -91,7 +91,7 @@ describe("/api/leads route handler", () => {
     expect(data.error).toBe("Invalid JSON payload");
   });
 
-  it("POST returns 200 without saving when honeypot field is filled", async () => {
+  it("POST returns 201 without saving when honeypot field is filled", async () => {
     const beforeCount = await leadCount();
     const req = new NextRequest("http://localhost:3000/api/leads", {
       method: "POST",
@@ -109,9 +109,10 @@ describe("/api/leads route handler", () => {
     });
 
     const res = await POST(req);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     const data = await res.json();
     expect(data.ok).toBe(true);
+    expect(data.leadId).toMatch(/^ld_/);
 
     const afterCount = await leadCount();
     expect(afterCount).toBe(beforeCount); // Verifies bot lead was not persisted
@@ -156,7 +157,8 @@ describe("/api/leads route handler", () => {
 
     const resBlocked = await POST(reqExceeded);
     expect(resBlocked.status).toBe(429);
-    expect(resBlocked.headers.get("Retry-After")).toBeDefined();
+    expect(resBlocked.headers.get("Retry-After")).not.toBeNull();
+    expect(resBlocked.headers.get("Retry-After")).toMatch(/^\d+$/);
     expect(resBlocked.headers.get("X-RateLimit-Remaining")).toBe("0");
   });
 });

@@ -11,10 +11,12 @@ export async function POST(req: NextRequest) {
   const limiter = rateLimit(ip, 5, 60 * 1000);
 
   if (!limiter.success) {
+    const errorMsg = "Too many requests. Please slow down and try again shortly.";
     return NextResponse.json(
       {
         ok: false,
-        error: "Too many requests. Please slow down and try again shortly.",
+        error: errorMsg,
+        message: errorMsg,
       },
       {
         status: 429,
@@ -33,16 +35,23 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json(
-      { ok: false, error: "Invalid JSON payload" },
+      { ok: false, error: "Invalid JSON payload", message: "Invalid JSON payload" },
       { status: 400 }
     );
   }
 
-  // 2. Honeypot spam defense: if bot fills hidden field, return benign 200 without saving
+  // 2. Honeypot spam defense: if bot fills hidden field, return indistinguishable 201 without saving
   if (typeof body.hp === "string" && body.hp.trim().length > 0) {
+    const fakeId = `ld_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`;
     return NextResponse.json(
-      { ok: true, leadId: "mock_lead_ack" },
-      { status: 200 }
+      { ok: true, leadId: fakeId },
+      {
+        status: 201,
+        headers: {
+          "X-RateLimit-Limit": limiter.limit.toString(),
+          "X-RateLimit-Remaining": limiter.remaining.toString(),
+        },
+      }
     );
   }
 

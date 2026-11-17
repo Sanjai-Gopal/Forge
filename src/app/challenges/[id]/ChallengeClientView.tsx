@@ -10,38 +10,35 @@ interface Props {
 
 type TabType = "specs" | "evaluation" | "leaderboard" | "submit";
 
+function computeTimeRemaining(deadlineStr: string) {
+  const targetDate = new Date(deadlineStr).getTime();
+  const distance = targetDate - Date.now();
+  if (distance <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true };
+  }
+  return {
+    days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+    minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+    seconds: Math.floor((distance % (1000 * 60)) / 1000),
+    isExpired: false,
+  };
+}
+
 export default function ChallengeClientView({ challenge }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("specs");
 
-  // Live countdown timer state
-  const [timeLeft, setTimeLeft] = useState<{
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-  }>({ days: 4, hours: 12, minutes: 30, seconds: 45 });
+  // Immediate initial countdown computation from challenge.deadline
+  const [timeLeft, setTimeLeft] = useState(() =>
+    computeTimeRemaining(challenge.deadline)
+  );
 
   useEffect(() => {
-    const targetDate = new Date(challenge.deadline).getTime();
-
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
-
-      if (distance <= 0) {
-        clearInterval(interval);
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      } else {
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor(
-          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-        );
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        setTimeLeft({ days, hours, minutes, seconds });
-      }
-    }, 1000);
-
+    const update = () => {
+      setTimeLeft(computeTimeRemaining(challenge.deadline));
+    };
+    update();
+    const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, [challenge.deadline]);
 
@@ -50,6 +47,7 @@ export default function ChallengeClientView({ challenge }: Props) {
   const [branch, setBranch] = useState("main");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [submissionResult, setSubmissionResult] = useState<{
     passed: boolean;
     score: number;
@@ -60,7 +58,17 @@ export default function ChallengeClientView({ challenge }: Props) {
 
   const handleSubmitSolution = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!repoUrl) return;
+    setErrorMessage("");
+
+    if (timeLeft.isExpired) {
+      setErrorMessage("This challenge has ended. Submissions are now closed.");
+      return;
+    }
+
+    if (!repoUrl || !repoUrl.startsWith("http")) {
+      setErrorMessage("Please enter a valid Git repository URL (https://...).");
+      return;
+    }
 
     setSubmitting(true);
     setSubmissionResult(null);
@@ -90,7 +98,7 @@ export default function ChallengeClientView({ challenge }: Props) {
       {/* Metrics & Countdown Bar */}
       <div className="grid grid-cols-2 gap-4 rounded-xl border border-ink/10 bg-paper-card p-5 sm:grid-cols-4 dark:border-ink-line dark:bg-ink-soft">
         <div>
-          <p className="font-mono text-xs uppercase tracking-wider text-muted-dark">
+          <p className="font-mono text-xs uppercase tracking-wider text-muted dark:text-muted-dark">
             Registered Builders
           </p>
           <p className="mt-1 font-display text-2xl font-bold text-ink dark:text-paper">
@@ -98,7 +106,7 @@ export default function ChallengeClientView({ challenge }: Props) {
           </p>
         </div>
         <div>
-          <p className="font-mono text-xs uppercase tracking-wider text-muted-dark">
+          <p className="font-mono text-xs uppercase tracking-wider text-muted dark:text-muted-dark">
             Total Submissions
           </p>
           <p className="mt-1 font-display text-2xl font-bold text-ink dark:text-paper">
@@ -106,7 +114,7 @@ export default function ChallengeClientView({ challenge }: Props) {
           </p>
         </div>
         <div>
-          <p className="font-mono text-xs uppercase tracking-wider text-muted-dark">
+          <p className="font-mono text-xs uppercase tracking-wider text-muted dark:text-muted-dark">
             Evaluation Latency
           </p>
           <p className="mt-1 font-display text-2xl font-bold text-accent">
@@ -114,14 +122,13 @@ export default function ChallengeClientView({ challenge }: Props) {
           </p>
         </div>
         <div>
-          <p className="font-mono text-xs uppercase tracking-wider text-muted-dark">
+          <p className="font-mono text-xs uppercase tracking-wider text-muted dark:text-muted-dark">
             Closes In
           </p>
           <p className="mt-1 font-mono text-xl font-bold text-ink dark:text-paper">
-            {String(timeLeft.days).padStart(2, "0")}d :{" "}
-            {String(timeLeft.hours).padStart(2, "0")}h :{" "}
-            {String(timeLeft.minutes).padStart(2, "0")}m :{" "}
-            {String(timeLeft.seconds).padStart(2, "0")}s
+            {timeLeft.isExpired
+              ? "Closed"
+              : `${String(timeLeft.days).padStart(2, "0")}d : ${String(timeLeft.hours).padStart(2, "0")}h : ${String(timeLeft.minutes).padStart(2, "0")}m : ${String(timeLeft.seconds).padStart(2, "0")}s`}
           </p>
         </div>
       </div>
@@ -209,7 +216,7 @@ export default function ChallengeClientView({ challenge }: Props) {
 
           <div className="mt-6 overflow-x-auto">
             <table className="w-full text-left font-mono text-xs">
-              <thead className="border-b border-ink/10 text-muted-dark dark:border-ink-line">
+              <thead className="border-b border-ink/10 text-muted dark:border-ink-line dark:text-muted-dark">
                 <tr>
                   <th className="pb-3 pr-4 font-semibold uppercase">Metric</th>
                   <th className="pb-3 pr-4 font-semibold uppercase">Target Benchmark</th>
@@ -243,7 +250,7 @@ export default function ChallengeClientView({ challenge }: Props) {
               <h2 className="font-display text-xl font-bold text-ink dark:text-paper">
                 Live Challenge Leaderboard
               </h2>
-              <p className="text-xs text-muted-dark">
+              <p className="text-xs text-muted dark:text-muted-dark">
                 Ranked by verification test passing rate and p99 execution latency.
               </p>
             </div>
@@ -256,23 +263,19 @@ export default function ChallengeClientView({ challenge }: Props) {
             {challenge.leaderboard.map((entry) => (
               <div
                 key={entry.rank}
-                className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
-                  entry.isCurrentUser
-                    ? "border-accent/50 bg-accent/10"
-                    : "border-ink/10 bg-paper dark:border-ink-line dark:bg-ink"
-                }`}
+                className="flex items-center gap-3 rounded-lg border border-ink/10 bg-paper p-3 dark:border-ink-line dark:bg-ink transition-colors"
               >
-                <span className="w-6 font-mono text-sm font-bold text-muted-dark">
+                <span className="w-6 font-mono text-sm font-bold text-muted dark:text-muted-dark">
                   #{entry.rank}
                 </span>
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/20 font-mono text-xs font-bold text-accent">
                   {entry.avatar}
                 </span>
                 <div>
-                  <span className={`text-sm font-semibold ${entry.isCurrentUser ? "text-accent" : "text-ink dark:text-paper"}`}>
-                    {entry.username} {entry.isCurrentUser && "(You)"}
+                  <span className="text-sm font-semibold text-ink dark:text-paper">
+                    {entry.username}
                   </span>
-                  <p className="text-[11px] text-muted-dark">
+                  <p className="text-[11px] text-muted dark:text-muted-dark">
                     Passed: {entry.testsPassed} · Latency: {entry.latencyMs}ms
                   </p>
                 </div>
@@ -280,7 +283,7 @@ export default function ChallengeClientView({ challenge }: Props) {
                   <span className="font-mono text-base font-bold text-ink dark:text-paper">
                     {entry.score}
                   </span>
-                  <span className="block text-[10px] uppercase text-muted-dark">
+                  <span className="block text-[10px] uppercase text-muted dark:text-muted-dark">
                     pts
                   </span>
                 </div>
@@ -301,54 +304,67 @@ export default function ChallengeClientView({ challenge }: Props) {
 
           <form onSubmit={handleSubmitSolution} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="repo-url" className="block font-mono text-xs uppercase text-muted-dark">
+              <label htmlFor="repo-url" className="block font-mono text-xs uppercase text-muted dark:text-muted-dark">
                 Repository URL (GitHub / GitLab)
               </label>
               <input
                 id="repo-url"
                 type="url"
                 required
+                disabled={timeLeft.isExpired}
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
                 placeholder="https://github.com/username/forge-solution"
-                className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-ink-line dark:bg-ink dark:text-paper"
+                className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-ink-line dark:bg-ink dark:text-paper disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="repo-branch" className="block font-mono text-xs uppercase text-muted-dark">
+                <label htmlFor="repo-branch" className="block font-mono text-xs uppercase text-muted dark:text-muted-dark">
                   Target Branch
                 </label>
                 <input
                   id="repo-branch"
                   type="text"
+                  disabled={timeLeft.isExpired}
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-ink-line dark:bg-ink dark:text-paper"
+                  className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-ink-line dark:bg-ink dark:text-paper disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div>
-                <label htmlFor="notes" className="block font-mono text-xs uppercase text-muted-dark">
+                <label htmlFor="notes" className="block font-mono text-xs uppercase text-muted dark:text-muted-dark">
                   Architecture Notes (Optional)
                 </label>
                 <input
                   id="notes"
                   type="text"
+                  disabled={timeLeft.isExpired}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. Ring buffer with LRU cache"
-                  className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-ink-line dark:bg-ink dark:text-paper"
+                  className="mt-1.5 w-full rounded-lg border border-ink/15 bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:border-ink-line dark:bg-ink dark:text-paper disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
             </div>
 
+            {errorMessage && (
+              <p role="alert" className="text-xs font-semibold text-red-500">
+                {errorMessage}
+              </p>
+            )}
+
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || timeLeft.isExpired}
               className="mt-2 min-h-11 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-mono text-xs font-bold text-ink transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Spawning evaluation sandbox…" : "Execute Sandbox Evaluation"}
+              {timeLeft.isExpired
+                ? "Submissions Closed"
+                : submitting
+                ? "Spawning evaluation sandbox…"
+                : "Execute Sandbox Evaluation"}
               <ArrowRight width={14} height={14} strokeWidth={2.5} />
             </button>
           </form>
@@ -368,7 +384,7 @@ export default function ChallengeClientView({ challenge }: Props) {
                   <h3 className="font-display text-base font-bold text-ink dark:text-paper">
                     Evaluation Passed: {submissionResult.grade} ({submissionResult.score} pts)
                   </h3>
-                  <p className="font-mono text-xs text-muted-dark">
+                  <p className="font-mono text-xs text-muted dark:text-muted-dark">
                     Test cases: {submissionResult.casesPassed} · Execution latency: {submissionResult.latency}ms
                   </p>
                 </div>

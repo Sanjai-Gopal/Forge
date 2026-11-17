@@ -74,10 +74,10 @@ export function validateLead(input: LeadInput): ValidationResult {
   };
 }
 
+/**
+ * Atomically checks for duplicate email and persists new lead via the active adapter.
+ */
 export async function addLead(value: Omit<Lead, "id" | "createdAt">): Promise<Lead> {
-  const existing = await activeAdapter.findLeadByEmail(value.email);
-  if (existing) return existing;
-
   return await activeAdapter.addLead(value);
 }
 

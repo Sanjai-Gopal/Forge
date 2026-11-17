@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getChallenge, getAllChallenges } from "@/lib/challenges";
+import { SITE_URL } from "@/lib/constants";
 import ChallengeClientView from "./ChallengeClientView";
 
 interface PageProps {
@@ -25,9 +26,13 @@ export function generateMetadata({ params }: PageProps): Metadata {
   return {
     title: `${challenge.title} | Forge Challenges`,
     description: challenge.subtitle,
+    alternates: {
+      canonical: `${SITE_URL}/challenges/${challenge.slug}`,
+    },
     openGraph: {
       title: `${challenge.title} | Forge Challenges`,
       description: challenge.subtitle,
+      url: `${SITE_URL}/challenges/${challenge.slug}`,
       type: "website",
     },
   };
@@ -43,7 +48,7 @@ export default function ChallengeDetailPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-paper text-ink transition-colors duration-150 dark:bg-ink dark:text-paper">
       {/* Header breadcrumb bar */}
-      <header className="border-b border-ink/10 bg-paper-soft px-4 py-4 dark:border-ink-line dark:bg-ink-soft">
+      <header className="border-b border-ink/10 bg-paper-deep px-4 py-4 dark:border-ink-line dark:bg-ink-soft">
         <div className="shell flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
@@ -52,11 +57,11 @@ export default function ChallengeDetailPage({ params }: PageProps) {
             >
               FORGE
             </Link>
-            <span className="text-muted-dark">/</span>
-            <span className="font-mono text-xs uppercase tracking-wider text-muted-dark">
+            <span className="text-muted dark:text-muted-dark">/</span>
+            <span className="font-mono text-xs uppercase tracking-wider text-muted dark:text-muted-dark">
               Challenges
             </span>
-            <span className="text-muted-dark">/</span>
+            <span className="text-muted dark:text-muted-dark">/</span>
             <span className="font-mono text-xs text-ink/80 dark:text-paper/80 font-medium">
               {challenge.slug}
             </span>
@@ -71,11 +76,11 @@ export default function ChallengeDetailPage({ params }: PageProps) {
         </div>
       </header>
 
-      <main className="shell py-10 sm:py-14">
+      <main id="main-content" tabIndex={-1} className="shell py-10 sm:py-14 outline-none">
         {/* Challenge title & metadata hero */}
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="rounded-full bg-accent/15 px-3 py-1 font-mono text-xs font-semibold text-accent">
+            <span className="rounded-full bg-accent/15 px-3 py-1 font-mono text-xs font-semibold text-ink dark:text-accent">
               {challenge.category}
             </span>
             <span className="rounded-full border border-ink/10 px-3 py-1 font-mono text-xs text-ink/70 dark:border-ink-line dark:text-paper/70">

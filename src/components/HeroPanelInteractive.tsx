@@ -5,6 +5,7 @@ import Link from "next/link";
 
 interface ChallengeData {
   id: string;
+  slug: string;
   category: string;
   title: string;
   route: string;
@@ -22,6 +23,7 @@ interface ChallengeData {
 const CHALLENGES: ChallengeData[] = [
   {
     id: "fraud",
+    slug: "demo-challenge",
     category: "Hiring hackathon · FinTech",
     title: "Real-time fraud scoring",
     route: "forge.app/c/fraud-scoring",
@@ -45,6 +47,7 @@ const CHALLENGES: ChallengeData[] = [
   },
   {
     id: "ratelimit",
+    slug: "rate-limiter",
     category: "System design challenge",
     title: "Distributed token bucket",
     route: "forge.app/c/rate-limiter",
@@ -68,6 +71,7 @@ const CHALLENGES: ChallengeData[] = [
   },
   {
     id: "rag",
+    slug: "eval-copilot",
     category: "AI capacity building",
     title: "Autonomous code evaluator",
     route: "forge.app/c/eval-copilot",
@@ -143,7 +147,7 @@ export default function HeroPanelInteractive() {
             <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
             <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
             <Link
-              href="/challenges/demo-challenge"
+              href={`/challenges/${challenge.slug}`}
               className="ml-3 font-mono text-xs text-muted-dark hover:text-accent transition-colors underline underline-offset-2"
               title="Open full interactive challenge details"
             >
@@ -252,7 +256,9 @@ export default function HeroPanelInteractive() {
               aria-live="polite"
               className="mt-4 space-y-2 font-mono text-xs leading-relaxed min-h-[96px]"
             >
-              <p className="text-muted-dark">› executing verification suite…</p>
+              <p className="text-muted-dark">
+                {isRunning ? "› executing verification suite…" : "› verification suite completed"}
+              </p>
               {runStage >= 1 && (
                 <p className="text-paper/70">
                   <span className="text-accent">PASS</span> {challenge.testCases} / {challenge.testCases} cases

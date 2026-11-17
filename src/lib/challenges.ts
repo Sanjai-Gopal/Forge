@@ -75,7 +75,7 @@ export async function scoreTransaction(tx: TransactionEvent) {
     leaderboard: [
       { rank: 1, username: "k.iyer", score: 98.4, latencyMs: 24, testsPassed: "412/412", avatar: "KI" },
       { rank: 2, username: "marco.dev", score: 96.1, latencyMs: 31, testsPassed: "412/412", avatar: "MD" },
-      { rank: 3, username: "sanjai_builder", score: 95.7, latencyMs: 38, testsPassed: "412/412", avatar: "SG", isCurrentUser: true },
+      { rank: 3, username: "sanjai_builder", score: 95.7, latencyMs: 38, testsPassed: "412/412", avatar: "SG" },
       { rank: 4, username: "dev_99", score: 94.2, latencyMs: 44, testsPassed: "408/412", avatar: "D9" },
     ],
   },
@@ -111,7 +111,7 @@ export async function scoreTransaction(tx: TransactionEvent) {
 }`,
     leaderboard: [
       { rank: 1, username: "s.patel", score: 99.1, latencyMs: 14, testsPassed: "512/512", avatar: "SP" },
-      { rank: 2, username: "sanjai_builder", score: 96.8, latencyMs: 19, testsPassed: "512/512", avatar: "SG", isCurrentUser: true },
+      { rank: 2, username: "sanjai_builder", score: 96.8, latencyMs: 19, testsPassed: "512/512", avatar: "SG" },
       { rank: 3, username: "alex.go", score: 94.3, latencyMs: 25, testsPassed: "506/512", avatar: "AG" },
     ],
   },
@@ -144,7 +144,7 @@ export async function scoreTransaction(tx: TransactionEvent) {
   return { grade: "A+", score: 97.4, passed: true };
 }`,
     leaderboard: [
-      { rank: 1, username: "sanjai_builder", score: 97.4, latencyMs: 42, testsPassed: "384/384", avatar: "SG", isCurrentUser: true },
+      { rank: 1, username: "sanjai_builder", score: 97.4, latencyMs: 42, testsPassed: "384/384", avatar: "SG" },
       { rank: 2, username: "elena.ai", score: 96.5, latencyMs: 51, testsPassed: "384/384", avatar: "EA" },
       { rank: 3, username: "dev_99", score: 93.8, latencyMs: 64, testsPassed: "372/384", avatar: "D9" },
     ],

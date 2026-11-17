@@ -11,7 +11,7 @@ export interface PlatformTelemetry {
 
 /**
  * Retrieves platform telemetry and prototype benchmark indicators.
- * Dynamic metrics reflect real submissions via in-memory leadCount().
+ * Dynamic metrics reflect real submissions via the active storage adapter.
  */
 export async function getPlatformTelemetry(): Promise<PlatformTelemetry> {
   const count = await leadCount();

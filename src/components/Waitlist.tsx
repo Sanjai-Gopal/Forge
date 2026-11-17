@@ -49,7 +49,7 @@ export default function Waitlist() {
       if (!res.ok) {
         const fieldErrors = data.errors ?? {};
         setErrors(fieldErrors);
-        setMessage(data.message ?? "Please resolve the highlighted fields.");
+        setMessage(data.message ?? data.error ?? "Please resolve the highlighted fields.");
         setStatus("error");
 
         // Programmatically focus the first invalid field for assistive tech
