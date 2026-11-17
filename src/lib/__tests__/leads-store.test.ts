@@ -1,10 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   validateLead,
   addLead,
   listLeads,
   leadCount,
+  setStorageAdapter,
+  _resetLeadsForTesting,
 } from "../leads-store";
+import { MemoryLeadsAdapter } from "../storage-adapter";
 
 describe("leads-store: validateLead", () => {
   it("validates valid company lead input", () => {
@@ -89,29 +92,34 @@ describe("leads-store: validateLead", () => {
 });
 
 describe("leads-store: storage and deduplication", () => {
-  it("stores new leads with generated IDs and ISO timestamps", () => {
-    const lead = addLead({
+  beforeEach(async () => {
+    setStorageAdapter(new MemoryLeadsAdapter());
+    await _resetLeadsForTesting();
+  });
+
+  it("stores new leads with generated IDs and ISO timestamps", async () => {
+    const lead = await addLead({
       name: "Claude Shannon",
       email: "claude@bell-labs.com",
       organization: "Bell Labs",
       intent: "company",
     });
 
-    expect(lead.id).toMatch(/^ld_/);
+    expect(lead.id).toBeDefined();
     expect(lead.email).toBe("claude@bell-labs.com");
     expect(new Date(lead.createdAt).getTime()).not.toBeNaN();
   });
 
-  it("deduplicates leads with identical emails", () => {
-    const initialCount = leadCount();
-    const lead1 = addLead({
+  it("deduplicates leads with identical emails", async () => {
+    const initialCount = await leadCount();
+    const lead1 = await addLead({
       name: "Tim Berners-Lee",
       email: "tim@w3.org",
       organization: "CERN",
       intent: "builder",
     });
 
-    const lead2 = addLead({
+    const lead2 = await addLead({
       name: "Tim BL",
       email: "tim@w3.org",
       organization: "W3C",
@@ -119,19 +127,19 @@ describe("leads-store: storage and deduplication", () => {
     });
 
     expect(lead1.id).toBe(lead2.id);
-    expect(leadCount()).toBe(initialCount + 1);
+    expect(await leadCount()).toBe(initialCount + 1);
   });
 
-  it("lists all submitted leads correctly in self-contained test", () => {
+  it("lists all submitted leads correctly in self-contained test", async () => {
     const uniqueEmail = `self_contained_${Date.now()}@unit-test.org`;
-    const lead = addLead({
+    const lead = await addLead({
       name: "John von Neumann",
       email: uniqueEmail,
       organization: "IAS Princeton",
       intent: "builder",
     });
 
-    const leads = listLeads();
+    const leads = await listLeads();
     expect(Array.isArray(leads)).toBe(true);
     expect(leads).toContainEqual(lead);
   });

@@ -1,6 +1,6 @@
 # Forge
 
-[![CI](https://github.com/Sanjai-Gopal/Forge/actions/workflows/ci.yml/badge.svg)](https://github.com/Sanjai-Gopal/Forge/actions/workflows/ci.yml)
+[![CI](https://github.com/Varadraj75/Forge/actions/workflows/ci.yml/badge.svg)](https://github.com/Varadraj75/Forge/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A high-performance landing page and demonstration platform for **Forge**, a hackathon-driven platform for innovation programs, skills-based hiring, skill validation, and AI capacity building.

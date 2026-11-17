@@ -1,10 +1,21 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { getPlatformTelemetry } from "../telemetry";
-import { addLead, leadCount } from "../leads-store";
+import {
+  addLead,
+  leadCount,
+  setStorageAdapter,
+  _resetLeadsForTesting,
+} from "../leads-store";
+import { MemoryLeadsAdapter } from "../storage-adapter";
 
 describe("telemetry: getPlatformTelemetry", () => {
+  beforeEach(async () => {
+    setStorageAdapter(new MemoryLeadsAdapter());
+    await _resetLeadsForTesting();
+  });
+
   it("streams dynamic platform telemetry metrics accurately", async () => {
-    const baselineLeads = leadCount();
+    const baselineLeads = await leadCount();
     const telemetry = await getPlatformTelemetry();
 
     expect(telemetry).toHaveProperty("benchmarkP95LatencyMs");
@@ -17,10 +28,10 @@ describe("telemetry: getPlatformTelemetry", () => {
   });
 
   it("updates platform telemetry when new leads register", async () => {
-    const beforeCount = leadCount();
+    const beforeCount = await leadCount();
     const uniqueEmail = `telemetry_test_${Date.now()}@example.com`;
 
-    addLead({
+    await addLead({
       name: "Barbara Liskov",
       email: uniqueEmail,
       organization: "MIT",

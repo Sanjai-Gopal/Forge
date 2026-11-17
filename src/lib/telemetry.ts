@@ -14,7 +14,7 @@ export interface PlatformTelemetry {
  * Dynamic metrics reflect real submissions via in-memory leadCount().
  */
 export async function getPlatformTelemetry(): Promise<PlatformTelemetry> {
-  const count = leadCount();
+  const count = await leadCount();
 
   return {
     waitlistRegistrations: count,

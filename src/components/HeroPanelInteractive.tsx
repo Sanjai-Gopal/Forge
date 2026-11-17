@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 
 interface ChallengeData {
   id: string;
@@ -94,20 +95,42 @@ export default function HeroPanelInteractive() {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [runStage, setRunStage] = useState(3); // 3 = all passed
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearAllTimers = () => {
+    timersRef.current.forEach((t) => clearTimeout(t));
+    timersRef.current = [];
+  };
+
+  useEffect(() => {
+    return () => {
+      clearAllTimers();
+    };
+  }, []);
 
   const challenge = CHALLENGES[selectedIdx];
 
+  const handleSelectChallenge = (index: number) => {
+    clearAllTimers();
+    setIsRunning(false);
+    setSelectedIdx(index);
+    setRunStage(3);
+  };
+
   const handleRunVerification = () => {
     if (isRunning) return;
+    clearAllTimers();
     setIsRunning(true);
     setRunStage(0);
 
-    setTimeout(() => setRunStage(1), 350);
-    setTimeout(() => setRunStage(2), 700);
-    setTimeout(() => {
+    const t1 = setTimeout(() => setRunStage(1), 350);
+    const t2 = setTimeout(() => setRunStage(2), 700);
+    const t3 = setTimeout(() => {
       setRunStage(3);
       setIsRunning(false);
     }, 1050);
+
+    timersRef.current = [t1, t2, t3];
   };
 
   return (
@@ -119,22 +142,29 @@ export default function HeroPanelInteractive() {
             <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
             <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
             <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            <span className="ml-3 font-mono text-xs text-muted-dark">
-              {challenge.route}
-            </span>
+            <Link
+              href="/challenges/demo-challenge"
+              className="ml-3 font-mono text-xs text-muted-dark hover:text-accent transition-colors underline underline-offset-2"
+              title="Open full interactive challenge details"
+            >
+              {challenge.route} ↗
+            </Link>
           </div>
 
-          {/* challenge selector pills */}
-          <div className="flex items-center gap-1.5 rounded-lg border border-ink-line bg-ink-soft p-1">
+          {/* challenge selector tabs with 44px AAA touch target */}
+          <div
+            role="tablist"
+            aria-label="Challenge tracks"
+            className="flex items-center gap-1.5 rounded-lg border border-ink-line bg-ink-soft p-1"
+          >
             {CHALLENGES.map((c, i) => (
               <button
                 key={c.id}
+                role="tab"
                 type="button"
-                onClick={() => {
-                  setSelectedIdx(i);
-                  setRunStage(3);
-                }}
-                className={`rounded px-2.5 py-1 font-mono text-[11px] transition-colors ${
+                aria-selected={selectedIdx === i}
+                onClick={() => handleSelectChallenge(i)}
+                className={`min-h-11 px-3.5 py-2 inline-flex items-center justify-center rounded font-mono text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   selectedIdx === i
                     ? "bg-accent/20 font-semibold text-accent"
                     : "text-paper/60 hover:text-paper"
@@ -211,13 +241,17 @@ export default function HeroPanelInteractive() {
                 type="button"
                 onClick={handleRunVerification}
                 disabled={isRunning}
-                className="rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-11 px-3.5 py-2 inline-flex items-center justify-center rounded-md border border-accent/40 bg-accent/10 font-mono text-xs font-semibold text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {isRunning ? "Running tests…" : "▶ Run verification"}
               </button>
             </div>
 
-            <div className="mt-4 space-y-2 font-mono text-xs leading-relaxed min-h-[96px]">
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-4 space-y-2 font-mono text-xs leading-relaxed min-h-[96px]"
+            >
               <p className="text-muted-dark">› executing verification suite…</p>
               {runStage >= 1 && (
                 <p className="text-paper/70">
@@ -254,7 +288,7 @@ export default function HeroPanelInteractive() {
                     </div>
                     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ink-line">
                       <div
-                        className="h-full rounded-full transition-all duration-500"
+                        className="h-full rounded-full transition-all duration-500 motion-reduce:transition-none"
                         style={{
                           width: runStage === 3 ? `${b.v}%` : "15%",
                           backgroundImage: "var(--grad)",

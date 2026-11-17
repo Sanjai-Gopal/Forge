@@ -23,7 +23,7 @@ export default async function LivePlatformStats() {
       highlight: false,
     },
     {
-      label: "Target SLA Latency",
+      label: "Target p95 Latency",
       value: `< ${telemetry.benchmarkP95LatencyMs}ms`,
       sub: "Architecture latency goal",
       highlight: false,

@@ -11,9 +11,10 @@ interface FormState {
   email: string;
   organization: string;
   intent: Intent;
+  hp: string;
 }
 
-const empty: FormState = { name: "", email: "", organization: "", intent: "company" };
+const empty: FormState = { name: "", email: "", organization: "", intent: "company", hp: "" };
 
 export default function Waitlist() {
   const [form, setForm] = useState<FormState>(empty);
@@ -164,6 +165,19 @@ export default function Waitlist() {
                 </div>
               ) : (
                 <form onSubmit={onSubmit} noValidate className="space-y-5">
+                  {/* Honeypot field for bot spam detection */}
+                  <div className="absolute -left-[9999px] opacity-0 pointer-events-none" aria-hidden="true">
+                    <label htmlFor="company-hp">Company Homepage</label>
+                    <input
+                      id="company-hp"
+                      type="text"
+                      name="hp"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={form.hp}
+                      onChange={(e) => update("hp", e.target.value)}
+                    />
+                  </div>
                   <fieldset>
                     <legend className="sr-only">Select your account intent</legend>
                     <div
