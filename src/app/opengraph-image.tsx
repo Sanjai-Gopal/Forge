@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { SITE_CONFIG } from "@/lib/constants";
+import { SITE_CONFIG, SITE_URL } from "@/lib/constants";
 
 export const runtime = "edge";
 export const alt = `${SITE_CONFIG.name} | ${SITE_CONFIG.tagline}`;
