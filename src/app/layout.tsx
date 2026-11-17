@@ -10,6 +10,7 @@ const display = Bricolage_Grotesque({
   weight: ["500", "600", "700", "800"],
   variable: "--font-display",
   display: "swap",
+  adjustFontFallback: false,
 });
 
 const sans = Hanken_Grotesk({
@@ -17,6 +18,7 @@ const sans = Hanken_Grotesk({
   weight: ["400", "500", "600"],
   variable: "--font-sans",
   display: "swap",
+  adjustFontFallback: false,
 });
 
 const mono = JetBrains_Mono({
@@ -24,6 +26,7 @@ const mono = JetBrains_Mono({
   weight: ["400", "500"],
   variable: "--font-mono",
   display: "swap",
+  adjustFontFallback: false,
 });
 
 export const viewport: Viewport = {
