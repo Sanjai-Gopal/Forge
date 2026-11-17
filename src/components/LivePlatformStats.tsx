@@ -62,21 +62,19 @@ export default async function LivePlatformStats() {
           {metrics.map((m) => (
             <div
               key={m.label}
-              className={`rounded-xl border p-4 transition-all duration-200 hover:-translate-y-0.5 ${
-                m.highlight
-                  ? "border-accent/40 bg-accent/10 dark:border-accent/30 dark:bg-accent/5"
-                  : "border-ink/5 bg-paper/60 dark:border-ink-line dark:bg-ink/60"
-              }`}
+              className={`rounded-xl border p-4 transition-all duration-200 hover:-translate-y-0.5 ${m.highlight
+                ? "border-accent/40 bg-accent/10 dark:border-accent/30 dark:bg-accent/5"
+                : "border-ink/5 bg-paper/60 dark:border-ink-line dark:bg-ink/60"
+                }`}
             >
               <p className="font-mono text-[11px] uppercase tracking-wider text-muted dark:text-muted-dark">
                 {m.label}
               </p>
               <p
-                className={`mt-2 font-display text-2xl font-extrabold tracking-tight sm:text-3xl ${
-                  m.highlight
-                    ? "grad-text"
-                    : "text-ink dark:text-paper"
-                }`}
+                className={`mt-2 font-display text-2xl font-extrabold tracking-tight sm:text-3xl ${m.highlight
+                  ? "grad-text"
+                  : "text-ink dark:text-paper"
+                  }`}
               >
                 {m.value}
               </p>

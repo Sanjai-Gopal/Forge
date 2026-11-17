@@ -23,11 +23,10 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-        scrolled
-          ? "border-b border-ink/10 bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85"
-          : "border-b border-transparent"
-      }`}
+      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${scrolled
+        ? "border-b border-ink/10 bg-paper/85 backdrop-blur-md dark:border-white/10 dark:bg-ink/85"
+        : "border-b border-transparent"
+        }`}
     >
       <nav aria-label="Main navigation" className="shell flex h-[68px] items-center justify-between">
         <a href="#top" aria-label="Forge home" className="focus-visible:rounded-lg">
@@ -78,9 +77,8 @@ export default function Navbar() {
       <div
         id="mobile-navigation"
         aria-hidden={!open}
-        className={`border-t border-ink/10 bg-paper shadow-lg dark:border-white/10 dark:bg-ink md:hidden ${
-          open ? "block" : "hidden"
-        }`}
+        className={`border-t border-ink/10 bg-paper shadow-lg dark:border-white/10 dark:bg-ink md:hidden ${open ? "block" : "hidden"
+          }`}
       >
         <div className="shell flex flex-col gap-1 py-4">
           {links.map((l) => (

@@ -185,11 +185,10 @@ export default function Waitlist() {
                             tabIndex={isSelected ? 0 : -1}
                             onKeyDown={(e) => handleIntentKeyDown(e, idx)}
                             onClick={() => update("intent", it.id)}
-                            className={`rounded-full px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                              isSelected
-                                ? "bg-ink text-paper dark:bg-paper dark:text-ink shadow-sm"
-                                : "text-ink/55 hover:text-ink dark:text-paper/60 dark:hover:text-paper"
-                            }`}
+                            className={`rounded-full px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${isSelected
+                              ? "bg-ink text-paper dark:bg-paper dark:text-ink shadow-sm"
+                              : "text-ink/55 hover:text-ink dark:text-paper/60 dark:hover:text-paper"
+                              }`}
                           >
                             {it.label}
                           </button>
@@ -325,11 +324,10 @@ function Field({
         aria-required={required}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
-        className={`w-full rounded-xl border bg-paper px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink/30 focus:border-ink dark:bg-ink dark:text-paper dark:placeholder:text-paper/30 dark:focus:border-accent ${
-          error
-            ? "border-red-500 focus:border-red-500 dark:border-red-500"
-            : "border-ink/12 dark:border-ink-line"
-        }`}
+        className={`w-full rounded-xl border bg-paper px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink/30 focus:border-ink dark:bg-ink dark:text-paper dark:placeholder:text-paper/30 dark:focus:border-accent ${error
+          ? "border-red-500 focus:border-red-500 dark:border-red-500"
+          : "border-ink/12 dark:border-ink-line"
+          }`}
       />
       {error && (
         <p id={errorId} role="alert" className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
