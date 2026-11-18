@@ -76,12 +76,18 @@ describe("rate-limiter", () => {
       expect(rateLimit(blockedIp, 5, 60000).success).toBe(false);
     });
 
-    it("respects custom limit parameters on per-record basis", () => {
+    it("respects custom limit parameters on per-record basis and dynamically updates limits", () => {
       const customIp = "10.10.10.10";
-      // Allow 2 requests only
+      // Allow 2 requests initially
       expect(rateLimit(customIp, 2, 60000).success).toBe(true);
       expect(rateLimit(customIp, 2, 60000).success).toBe(true);
       expect(rateLimit(customIp, 2, 60000).success).toBe(false);
+
+      // Dynamically expand the limit to 4 for this IP; 3rd request should now succeed
+      const expanded = rateLimit(customIp, 4, 60000);
+      expect(expanded.success).toBe(true);
+      expect(expanded.remaining).toBe(1);
+      expect(expanded.limit).toBe(4);
     });
   });
 
