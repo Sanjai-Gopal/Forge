@@ -30,6 +30,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // 2. Request body size limit (max 10KB to prevent DoS)
+  const contentLength = req.headers.get("content-length");
+  if (contentLength && parseInt(contentLength, 10) > 10 * 1024) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Payload too large. Maximum allowed size is 10KB.",
+        message: "Payload too large",
+      },
+      { status: 413 }
+    );
+  }
+
   let body: LeadInput & { hp?: unknown };
   try {
     body = await req.json();
@@ -40,7 +53,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 2. Honeypot spam defense: if bot fills hidden field, return indistinguishable 201 without saving
+  // 3. Honeypot spam defense: if bot fills hidden field, return indistinguishable 201 without saving
   if (typeof body.hp === "string" && body.hp.trim().length > 0) {
     const fakeId = `ld_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`;
     return NextResponse.json(

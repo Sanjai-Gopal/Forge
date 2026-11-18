@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, type KeyboardEvent } from "react";
 
 const faqs = [
   {
@@ -27,6 +27,25 @@ const faqs = [
 
 export default function Faq() {
   const [open, setOpen] = useState<number | null>(0);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  function handleKeyDown(e: KeyboardEvent<HTMLButtonElement>, idx: number) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = (idx + 1) % faqs.length;
+      buttonRefs.current[next]?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = (idx - 1 + faqs.length) % faqs.length;
+      buttonRefs.current[prev]?.focus();
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      buttonRefs.current[0]?.focus();
+    } else if (e.key === "End") {
+      e.preventDefault();
+      buttonRefs.current[faqs.length - 1]?.focus();
+    }
+  }
 
   return (
     <section id="faq" className="relative overflow-hidden bg-ink py-24 sm:py-32">
@@ -55,8 +74,12 @@ export default function Faq() {
                 <h3>
                   <button
                     id={questionId}
+                    ref={(el) => {
+                      buttonRefs.current[i] = el;
+                    }}
                     type="button"
                     onClick={() => setOpen(isOpen ? null : i)}
+                    onKeyDown={(e) => handleKeyDown(e, i)}
                     aria-expanded={isOpen}
                     aria-controls={answerId}
                     className="flex w-full items-center justify-between gap-6 py-5 text-left transition-colors focus-visible:rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"

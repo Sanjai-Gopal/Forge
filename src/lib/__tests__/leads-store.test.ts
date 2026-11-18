@@ -78,6 +78,20 @@ describe("leads-store: validateLead", () => {
     expect(result.errors.organization).toBe("Tell us where you work.");
   });
 
+  it("fails when input strings exceed upper bounds", () => {
+    const result = validateLead({
+      name: "A".repeat(101),
+      email: `${"a".repeat(250)}@example.com`,
+      organization: "O".repeat(121),
+      intent: "company",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors.name).toBe("Name must be 100 characters or fewer.");
+    expect(result.errors.email).toBe("Email must be 254 characters or fewer.");
+    expect(result.errors.organization).toBe("Organization must be 120 characters or fewer.");
+  });
+
   it("fails when intent is invalid", () => {
     const result = validateLead({
       name: "Katherine Johnson",

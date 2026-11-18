@@ -60,8 +60,14 @@ export function validateLead(input: LeadInput): ValidationResult {
   const intent = input.intent;
 
   if (name.length < 2) errors.name = "Please enter your full name.";
+  else if (name.length > 100) errors.name = "Name must be 100 characters or fewer.";
+
   if (!EMAIL_RE.test(email)) errors.email = "Please enter a valid work email.";
+  else if (email.length > 254) errors.email = "Email must be 254 characters or fewer.";
+
   if (organization.length < 2) errors.organization = "Tell us where you work.";
+  else if (organization.length > 120) errors.organization = "Organization must be 120 characters or fewer.";
+
   if (intent !== "company" && intent !== "builder")
     errors.intent = "Choose how you'd like to use Forge.";
 

@@ -74,6 +74,24 @@ describe("/api/leads route handler", () => {
     expect(data.errors).toHaveProperty("intent");
   });
 
+  it("POST returns 413 when payload exceeds 10KB size limit", async () => {
+    const req = new NextRequest("http://localhost:3000/api/leads", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "content-length": "12000",
+        "x-forwarded-for": "198.51.100.99",
+      },
+      body: JSON.stringify({ name: "Large", email: "large@test.com", organization: "Large", intent: "company" }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(413);
+    const data = await res.json();
+    expect(data.ok).toBe(false);
+    expect(data.error).toContain("Payload too large");
+  });
+
   it("POST returns 400 on malformed JSON", async () => {
     const req = new NextRequest("http://localhost:3000/api/leads", {
       method: "POST",
