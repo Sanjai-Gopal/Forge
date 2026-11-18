@@ -58,9 +58,19 @@ export class FileLeadsAdapter implements LeadsStorageAdapter {
 
   public readLeads(): Lead[] {
     if (!fs.existsSync(this.filePath)) return [];
+    let content: string;
     try {
-      const content = fs.readFileSync(this.filePath, "utf-8");
-      if (!content.trim()) return [];
+      content = fs.readFileSync(this.filePath, "utf-8");
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+        return [];
+      }
+      throw err;
+    }
+
+    if (!content.trim()) return [];
+
+    try {
       const parsed = JSON.parse(content);
       if (!Array.isArray(parsed)) {
         throw new Error(`Corrupted leads data: expected an array, got ${typeof parsed}`);
@@ -69,9 +79,6 @@ export class FileLeadsAdapter implements LeadsStorageAdapter {
     } catch (err: unknown) {
       if (err instanceof Error && err.message.startsWith("Corrupted leads")) {
         throw err;
-      }
-      if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-        return [];
       }
       throw new Error(`Failed to parse leads file at ${this.filePath}: ${(err as Error).message}`);
     }

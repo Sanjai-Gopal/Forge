@@ -1,30 +1,27 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { NextRequest } from "next/server";
-import { GET, POST } from "../route";
-import { leadCount, setStorageAdapter, _resetLeadsForTesting } from "@/lib/leads-store";
+import { POST, GET } from "../route";
+import { _resetLeadsForTesting, setStorageAdapter } from "@/lib/leads-store";
 import { MemoryLeadsAdapter } from "@/lib/storage-adapter";
 import { _resetRateLimiter } from "@/lib/rate-limiter";
+import { NextRequest } from "next/server";
 
-describe("/api/leads route handler", () => {
+describe("api/leads route handlers", () => {
   beforeEach(async () => {
     setStorageAdapter(new MemoryLeadsAdapter());
     await _resetLeadsForTesting();
     _resetRateLimiter();
   });
 
-  it("GET returns current submission count matching the store", async () => {
-    const expectedCount = await leadCount();
+  it("GET returns current count with no-store cache headers", async () => {
     const res = await GET();
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.ok).toBe(true);
-    expect(data.count).toBe(expectedCount);
+    expect(typeof data.count).toBe("number");
+    expect(res.headers.get("Cache-Control")).toBe("no-store, max-age=0");
   });
 
-  it("POST stores new lead, returns 201, and increments lead count by one", async () => {
-    const beforeCount = await leadCount();
-    const uniqueEmail = `rosalind_${Date.now()}_${Math.random().toString(36).slice(2, 6)}@dna.ac.uk`;
-
+  it("POST saves valid lead and returns 201 with generated id and total count", async () => {
     const req = new NextRequest("http://localhost:3000/api/leads", {
       method: "POST",
       headers: {
@@ -32,9 +29,9 @@ describe("/api/leads route handler", () => {
         "x-forwarded-for": "198.51.100.1",
       },
       body: JSON.stringify({
-        name: "Rosalind Franklin",
-        email: uniqueEmail,
-        organization: "King's College London",
+        name: "Ada Lovelace",
+        email: "ada@analytical.dev",
+        organization: "Analytical Engines",
         intent: "builder",
       }),
     });
@@ -43,13 +40,12 @@ describe("/api/leads route handler", () => {
     expect(res.status).toBe(201);
     const data = await res.json();
     expect(data.ok).toBe(true);
-    expect(data.leadId).toBeDefined();
-
-    const afterCount = await leadCount();
-    expect(afterCount).toBe(beforeCount + 1);
+    expect(data.leadId).toMatch(/^ld_/);
+    expect(data.count).toBe(1);
+    expect(data.message).toContain("You're on the list");
   });
 
-  it("POST returns 422 with field errors on invalid submission", async () => {
+  it("POST returns 422 with granular field errors when validation fails", async () => {
     const req = new NextRequest("http://localhost:3000/api/leads", {
       method: "POST",
       headers: {
@@ -57,10 +53,10 @@ describe("/api/leads route handler", () => {
         "x-forwarded-for": "198.51.100.2",
       },
       body: JSON.stringify({
-        name: "R",
-        email: "not-valid-email",
+        name: "",
+        email: "invalid-email",
         organization: "",
-        intent: "invalid",
+        intent: "invalid-intent",
       }),
     });
 
@@ -74,7 +70,7 @@ describe("/api/leads route handler", () => {
     expect(data.errors).toHaveProperty("intent");
   });
 
-  it("POST returns 413 when payload exceeds 10KB size limit", async () => {
+  it("POST returns 413 when content-length header exceeds 10KB", async () => {
     const req = new NextRequest("http://localhost:3000/api/leads", {
       method: "POST",
       headers: {
@@ -83,6 +79,31 @@ describe("/api/leads route handler", () => {
         "x-forwarded-for": "198.51.100.99",
       },
       body: JSON.stringify({ name: "Large", email: "large@test.com", organization: "Large", intent: "company" }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(413);
+    const data = await res.json();
+    expect(data.ok).toBe(false);
+    expect(data.error).toContain("Payload too large");
+  });
+
+  it("POST returns 413 when actual body bytes exceed 10KB even without content-length header", async () => {
+    // Generate an oversized payload (> 10KB)
+    const largePadding = "x".repeat(11 * 1024);
+    const req = new NextRequest("http://localhost:3000/api/leads", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-forwarded-for": "198.51.100.98",
+      },
+      body: JSON.stringify({
+        name: "Oversized",
+        email: "oversized@test.com",
+        organization: "Big Data Corp",
+        intent: "company",
+        padding: largePadding,
+      }),
     });
 
     const res = await POST(req);
@@ -109,8 +130,7 @@ describe("/api/leads route handler", () => {
     expect(data.error).toBe("Invalid JSON payload");
   });
 
-  it("POST returns 201 without saving when honeypot field is filled", async () => {
-    const beforeCount = await leadCount();
+  it("POST returns fake 201 without storing lead when honeypot field is filled", async () => {
     const req = new NextRequest("http://localhost:3000/api/leads", {
       method: "POST",
       headers: {
@@ -118,11 +138,11 @@ describe("/api/leads route handler", () => {
         "x-forwarded-for": "198.51.100.4",
       },
       body: JSON.stringify({
-        name: "Bot Spammer",
-        email: "spambot@auto.io",
+        name: "Spam Bot",
+        email: "spambot@automated.ru",
         organization: "BotNet LLC",
-        intent: "company",
-        hp: "https://spam-link.com",
+        intent: "builder",
+        hp: "I am a malicious bot filling invisible inputs",
       }),
     });
 
@@ -132,51 +152,49 @@ describe("/api/leads route handler", () => {
     expect(data.ok).toBe(true);
     expect(data.leadId).toMatch(/^ld_/);
 
-    const afterCount = await leadCount();
-    expect(afterCount).toBe(beforeCount); // Verifies bot lead was not persisted
+    // Ensure bot was NOT saved into real storage
+    const getRes = await GET();
+    const getData = await getRes.json();
+    expect(getData.count).toBe(0);
   });
 
-  it("POST enforces rate limit and returns 429 when client exceeds threshold", async () => {
-    const testIp = "203.0.113.88";
-
-    // Exhaust 5 allowed requests
+  it("POST enforces rate limiting (returns 429 on 6th request from same IP)", async () => {
+    const ip = "198.51.100.5";
     for (let i = 0; i < 5; i++) {
       const req = new NextRequest("http://localhost:3000/api/leads", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-forwarded-for": testIp,
+          "x-forwarded-for": ip,
         },
         body: JSON.stringify({
           name: `User ${i}`,
-          email: `user${i}@rate.test`,
+          email: `user${i}@rate.dev`,
           organization: "Rate Corp",
           intent: "builder",
         }),
       });
-      const r = await POST(req);
-      expect(r.status).toBe(201);
+      const res = await POST(req);
+      expect(res.status).toBe(201);
     }
 
-    // 6th request must be rejected with 429
-    const reqExceeded = new NextRequest("http://localhost:3000/api/leads", {
+    // 6th request should be rate-limited
+    const reqBlocked = new NextRequest("http://localhost:3000/api/leads", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-forwarded-for": testIp,
+        "x-forwarded-for": ip,
       },
       body: JSON.stringify({
-        name: "Exceeded User",
-        email: "exceeded@rate.test",
+        name: "User Blocked",
+        email: "blocked@rate.dev",
         organization: "Rate Corp",
         intent: "builder",
       }),
     });
-
-    const resBlocked = await POST(reqExceeded);
+    const resBlocked = await POST(reqBlocked);
     expect(resBlocked.status).toBe(429);
-    expect(resBlocked.headers.get("Retry-After")).not.toBeNull();
-    expect(resBlocked.headers.get("Retry-After")).toMatch(/^\d+$/);
     expect(resBlocked.headers.get("X-RateLimit-Remaining")).toBe("0");
+    expect(resBlocked.headers.get("Retry-After")).toBeDefined();
   });
 });

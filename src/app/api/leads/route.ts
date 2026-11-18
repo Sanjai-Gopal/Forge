@@ -5,6 +5,8 @@ import { rateLimit, getClientIp } from "@/lib/rate-limiter";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const MAX_PAYLOAD_BYTES = 10 * 1024; // 10KB limit
+
 export async function POST(req: NextRequest) {
   // 1. IP Rate Limiting (5 requests per 60 seconds)
   const ip = getClientIp(req);
@@ -30,9 +32,32 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 2. Request body size limit (max 10KB to prevent DoS)
+  // 2. Fast check: Content-Length header guard (max 10KB to prevent DoS)
   const contentLength = req.headers.get("content-length");
-  if (contentLength && parseInt(contentLength, 10) > 10 * 1024) {
+  if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Payload too large. Maximum allowed size is 10KB.",
+        message: "Payload too large",
+      },
+      { status: 413 }
+    );
+  }
+
+  // 3. Enforce real byte limit on actual body bytes (handles chunked or missing content-length)
+  let rawText: string;
+  try {
+    rawText = await req.text();
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "Failed to read request body", message: "Failed to read request body" },
+      { status: 400 }
+    );
+  }
+
+  const actualBytes = Buffer.byteLength(rawText, "utf-8");
+  if (actualBytes > MAX_PAYLOAD_BYTES) {
     return NextResponse.json(
       {
         ok: false,
@@ -45,7 +70,7 @@ export async function POST(req: NextRequest) {
 
   let body: LeadInput & { hp?: unknown };
   try {
-    body = await req.json();
+    body = JSON.parse(rawText);
   } catch {
     return NextResponse.json(
       { ok: false, error: "Invalid JSON payload", message: "Invalid JSON payload" },
@@ -53,46 +78,61 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 3. Honeypot spam defense: if bot fills hidden field, return indistinguishable 201 without saving
+  // 4. Honeypot spam defense: if bot fills hidden field, return indistinguishable 201 without saving
   if (typeof body.hp === "string" && body.hp.trim().length > 0) {
     const fakeId = `ld_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`;
     return NextResponse.json(
       { ok: true, leadId: fakeId },
-      {
-        status: 201,
-        headers: {
-          "X-RateLimit-Limit": limiter.limit.toString(),
-          "X-RateLimit-Remaining": limiter.remaining.toString(),
-        },
-      }
+      { status: 201 }
     );
   }
 
-  // 3. Payload validation
-  const result = validateLead(body);
-  if (!result.ok || !result.value) {
+  // 5. Schema validation & sanitization
+  const validation = validateLead(body);
+  if (!validation.ok || !validation.value) {
     return NextResponse.json(
-      { ok: false, errors: result.errors },
+      {
+        ok: false,
+        error: "Validation failed",
+        errors: validation.errors,
+      },
       { status: 422 }
     );
   }
 
-  // 4. Persistence via active storage adapter
-  const lead = await addLead(result.value);
+  try {
+    const lead = await addLead(validation.value);
+    const count = await leadCount();
 
-  return NextResponse.json(
-    { ok: true, leadId: lead.id },
-    {
-      status: 201,
-      headers: {
-        "X-RateLimit-Limit": limiter.limit.toString(),
-        "X-RateLimit-Remaining": limiter.remaining.toString(),
+    return NextResponse.json(
+      {
+        ok: true,
+        leadId: lead.id,
+        count,
+        message: "You're on the list. We'll be in touch soon.",
       },
-    }
-  );
+      { status: 201 }
+    );
+  } catch (err: unknown) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: (err as Error).message || "Failed to save lead",
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function GET() {
   const count = await leadCount();
-  return NextResponse.json({ ok: true, count });
+  return NextResponse.json(
+    { ok: true, count },
+    {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    }
+  );
 }

@@ -24,12 +24,18 @@ function cleanupStaleRecords(windowMs: number) {
     }
   });
 
-  // Evict oldest entries if map exceeds bounded capacity
+  // Evict least-recently-active entries if map exceeds bounded capacity
   if (ipRequestMap.size >= MAX_TRACKED_IPS) {
+    const sortedByOldestActivity = Array.from(ipRequestMap.entries()).sort(
+      ([, a], [, b]) => {
+        const lastA = a.timestamps[a.timestamps.length - 1] ?? 0;
+        const lastB = b.timestamps[b.timestamps.length - 1] ?? 0;
+        return lastA - lastB;
+      }
+    );
     const evictionCount = Math.max(1, Math.floor(MAX_TRACKED_IPS * 0.2));
-    const keys = Array.from(ipRequestMap.keys()).slice(0, evictionCount);
-    for (const key of keys) {
-      ipRequestMap.delete(key);
+    for (let i = 0; i < evictionCount && i < sortedByOldestActivity.length; i++) {
+      ipRequestMap.delete(sortedByOldestActivity[i][0]);
     }
   }
 }

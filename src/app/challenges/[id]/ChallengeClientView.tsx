@@ -445,10 +445,12 @@ export default function ChallengeClientView({ challenge }: Props) {
             <button
               type="submit"
               disabled={submitting || timeLeft.isExpired}
-              className="btn-accent inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+              className="btn-accent inline-flex w-full items-center justify-center gap-2 sm:w-auto disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? (
                 <span>Evaluating in sandbox...</span>
+              ) : timeLeft.isExpired ? (
+                <span>Submissions Closed</span>
               ) : (
                 <>
                   <span>Run Sandbox Tests</span>

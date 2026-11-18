@@ -92,6 +92,25 @@ describe("leads-store: validateLead", () => {
     expect(result.errors.organization).toBe("Organization must be 120 characters or fewer.");
   });
 
+  it("accepts inputs at the exact maximum allowable string bounds", () => {
+    const maxLocal = "a".repeat(64);
+    const maxDomain = "b".repeat(185) + ".com";
+    const maxEmail = `${maxLocal}@${maxDomain}`; // 64 + 1 + 185 + 4 = 254 chars
+    expect(maxEmail.length).toBe(254);
+
+    const result = validateLead({
+      name: "A".repeat(100),
+      email: maxEmail,
+      organization: "O".repeat(120),
+      intent: "company",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.value?.name.length).toBe(100);
+    expect(result.value?.email.length).toBe(254);
+    expect(result.value?.organization.length).toBe(120);
+  });
+
   it("fails when intent is invalid", () => {
     const result = validateLead({
       name: "Katherine Johnson",

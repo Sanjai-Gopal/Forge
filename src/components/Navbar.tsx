@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Logo, Menu, Close, ArrowRight } from "./icons";
 import ThemeToggle from "./ThemeToggle";
 
@@ -13,6 +13,7 @@ const links = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -24,7 +25,10 @@ export default function Navbar() {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        toggleRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -72,6 +76,7 @@ export default function Navbar() {
         <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
           <button
+            ref={toggleRef}
             className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 text-ink transition-colors dark:border-white/20 dark:text-paper"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
@@ -100,14 +105,20 @@ export default function Navbar() {
               {l.label}
             </a>
           ))}
-          <div className="mt-2 pt-2 border-t border-ink/10 dark:border-white/10">
+          <div className="mt-2 flex flex-col gap-2 pt-2 border-t border-ink/10 dark:border-white/10">
             <a
               href="#waitlist"
               onClick={() => setOpen(false)}
-              className="btn-accent w-full"
+              className="px-3 py-2 text-base font-medium text-ink/80 dark:text-paper/80"
+            >
+              Sign in
+            </a>
+            <a
+              href="#waitlist"
+              onClick={() => setOpen(false)}
+              className="btn-accent text-center"
             >
               Get started
-              <ArrowRight width={16} height={16} />
             </a>
           </div>
         </div>
