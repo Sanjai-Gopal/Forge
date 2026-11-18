@@ -103,9 +103,9 @@ export default function Navbar() {
             <a
               href="#waitlist"
               onClick={() => setOpen(false)}
-              className="btn-accent min-h-11 inline-flex items-center justify-center text-center font-medium gap-2"
+              className="btn-accent"
             >
-              <span>Get started</span>
+              Get started
               <ArrowRight width={16} height={16} />
             </a>
           </div>
