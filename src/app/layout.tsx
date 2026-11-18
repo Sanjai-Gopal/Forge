@@ -7,18 +7,21 @@ import "./globals.css";
 
 const display = localFont({
   src: "./fonts/bricolage.woff2",
+  weight: "500 800",
   variable: "--font-display",
   display: "swap",
 });
 
 const sans = localFont({
   src: "./fonts/hanken.woff2",
+  weight: "400 600",
   variable: "--font-sans",
   display: "swap",
 });
 
 const mono = localFont({
   src: "./fonts/jetbrains.woff2",
+  weight: "400 500",
   variable: "--font-mono",
   display: "swap",
 });
