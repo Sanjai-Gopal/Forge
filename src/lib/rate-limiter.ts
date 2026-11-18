@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 
 interface RateLimitRecord {
   timestamps: number[];
+  limit: number;
 }
 
 export const MAX_TRACKED_IPS = 10000;
@@ -24,14 +25,15 @@ function cleanupStaleRecords(windowMs: number) {
     }
   });
 
-  // Evict least-recently-active entries if map exceeds bounded capacity,
-  // prioritizing records with inactive timestamps and never prematurely evicting blocked IPs
+  // Evict entries when map exceeds bounded capacity:
+  // 1. Unblocked records (timestamps.length < record.limit) are evicted first, ordered by oldest activity
+  // 2. Blocked records (timestamps.length >= record.limit) are evicted only if needed, ordered by oldest activity
+  // This ensures that eviction always frees up room, preventing table pegging and re-sorting loops.
   if (ipRequestMap.size >= MAX_TRACKED_IPS) {
     const sorted = Array.from(ipRequestMap.entries()).sort(
       ([, a], [, b]) => {
-        // Keep currently blocked records (length >= 5) protected from eviction so their limits don't reset
-        const aBlocked = a.timestamps.length >= 5 ? 1 : 0;
-        const bBlocked = b.timestamps.length >= 5 ? 1 : 0;
+        const aBlocked = a.timestamps.length >= a.limit ? 1 : 0;
+        const bBlocked = b.timestamps.length >= b.limit ? 1 : 0;
         if (aBlocked !== bBlocked) return aBlocked - bBlocked;
 
         const lastA = a.timestamps[a.timestamps.length - 1] ?? 0;
@@ -41,8 +43,6 @@ function cleanupStaleRecords(windowMs: number) {
     );
     const evictionCount = Math.max(1, Math.floor(MAX_TRACKED_IPS * 0.2));
     for (let i = 0; i < evictionCount && i < sorted.length; i++) {
-      // If we only have blocked records left, do not evict them prematurely
-      if (sorted[i][1].timestamps.length >= 5) break;
       ipRequestMap.delete(sorted[i][0]);
     }
   }
@@ -104,8 +104,10 @@ export function rateLimit(
 
   let record = ipRequestMap.get(ip);
   if (!record) {
-    record = { timestamps: [] };
+    record = { timestamps: [], limit };
     ipRequestMap.set(ip, record);
+  } else {
+    record.limit = limit;
   }
 
   // Remove timestamps outside the sliding window

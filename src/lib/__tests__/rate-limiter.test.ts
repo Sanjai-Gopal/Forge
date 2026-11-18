@@ -60,13 +60,28 @@ describe("rate-limiter", () => {
       }
       expect(rateLimit(blockedIp, 5, 60000).success).toBe(false);
 
+      // Verify precondition: exactly 1 IP tracked initially
+      expect(_getTrackedIpCount()).toBe(1);
+
       // Flood the cache with benign single-request IPs to trigger eviction
-      for (let i = 0; i < MAX_TRACKED_IPS + 50; i++) {
+      const floodCount = MAX_TRACKED_IPS + 50;
+      for (let i = 0; i < floodCount; i++) {
         rateLimit(`172.16.${Math.floor(i / 256)}.${i % 256}`, 5, 60000);
       }
 
+      // Verify that eviction actually took place (table size is less than total unique IPs introduced)
+      expect(_getTrackedIpCount()).toBeLessThan(floodCount + 1);
+
       // Blocked IP must STILL be blocked and not prematurely evicted
       expect(rateLimit(blockedIp, 5, 60000).success).toBe(false);
+    });
+
+    it("respects custom limit parameters on per-record basis", () => {
+      const customIp = "10.10.10.10";
+      // Allow 2 requests only
+      expect(rateLimit(customIp, 2, 60000).success).toBe(true);
+      expect(rateLimit(customIp, 2, 60000).success).toBe(true);
+      expect(rateLimit(customIp, 2, 60000).success).toBe(false);
     });
   });
 
