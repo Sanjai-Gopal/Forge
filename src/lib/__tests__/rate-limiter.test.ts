@@ -52,6 +52,22 @@ describe("rate-limiter", () => {
       // Memory tracking should remain bounded
       expect(_getTrackedIpCount()).toBeLessThanOrEqual(MAX_TRACKED_IPS + 50);
     });
+
+    it("preserves blocked IPs during eviction so rate limits cannot be reset by flooding new IPs", () => {
+      const blockedIp = "10.0.0.99";
+      for (let i = 0; i < 5; i++) {
+        rateLimit(blockedIp, 5, 60000);
+      }
+      expect(rateLimit(blockedIp, 5, 60000).success).toBe(false);
+
+      // Flood the cache with benign single-request IPs to trigger eviction
+      for (let i = 0; i < MAX_TRACKED_IPS + 50; i++) {
+        rateLimit(`172.16.${Math.floor(i / 256)}.${i % 256}`, 5, 60000);
+      }
+
+      // Blocked IP must STILL be blocked and not prematurely evicted
+      expect(rateLimit(blockedIp, 5, 60000).success).toBe(false);
+    });
   });
 
   describe("IP validation and sanitization", () => {
