@@ -54,23 +54,13 @@ export class FileLeadsAdapter implements LeadsStorageAdapter {
 
   constructor(filePath?: string) {
     this.filePath = filePath || path.join(process.cwd(), ".data", "leads.json");
-    this.ensureFileExists();
-  }
-
-  private ensureFileExists() {
-    const dir = path.dirname(this.filePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    if (!fs.existsSync(this.filePath)) {
-      fs.writeFileSync(this.filePath, JSON.stringify([], null, 2), "utf-8");
-    }
   }
 
   public readLeads(): Lead[] {
     if (!fs.existsSync(this.filePath)) return [];
-    const content = fs.readFileSync(this.filePath, "utf-8");
     try {
+      const content = fs.readFileSync(this.filePath, "utf-8");
+      if (!content.trim()) return [];
       const parsed = JSON.parse(content);
       if (!Array.isArray(parsed)) {
         throw new Error(`Corrupted leads data: expected an array, got ${typeof parsed}`);
@@ -80,13 +70,18 @@ export class FileLeadsAdapter implements LeadsStorageAdapter {
       if (err instanceof Error && err.message.startsWith("Corrupted leads")) {
         throw err;
       }
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+        return [];
+      }
       throw new Error(`Failed to parse leads file at ${this.filePath}: ${(err as Error).message}`);
     }
   }
 
   private writeLeadsAtomic(leads: Lead[]) {
-    this.ensureFileExists();
     const dir = path.dirname(this.filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
     const tempPath = path.join(dir, `.leads.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`);
     fs.writeFileSync(tempPath, JSON.stringify(leads, null, 2), "utf-8");
     fs.renameSync(tempPath, this.filePath);
@@ -143,7 +138,8 @@ export class FileLeadsAdapter implements LeadsStorageAdapter {
 }
 
 export function createDefaultStorageAdapter(): LeadsStorageAdapter {
-  if (process.env.LEADS_STORAGE_ADAPTER === "file") {
+  const adapterType = (process.env.LEADS_STORAGE_ADAPTER || "").trim().toLowerCase();
+  if (adapterType === "file") {
     return new FileLeadsAdapter();
   }
   return new MemoryLeadsAdapter();

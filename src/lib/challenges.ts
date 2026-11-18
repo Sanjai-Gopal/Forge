@@ -22,6 +22,8 @@ export interface Challenge {
   category: "Fintech & Fraud" | "Distributed Systems" | "Applied AI / LLM" | "Infrastructure";
   difficulty: "Intermediate" | "Advanced" | "Expert";
   deadline: string;
+  startDate?: string;
+  status?: "ACTIVE" | "UPCOMING" | "CLOSED";
   buildersCount: number;
   submissionsCount: number;
   summary: string;
@@ -41,6 +43,8 @@ export const CHALLENGES: Challenge[] = [
     category: "Fintech & Fraud",
     difficulty: "Advanced",
     deadline: "2026-11-25T23:59:59Z",
+    startDate: "2026-11-01T00:00:00Z",
+    status: "ACTIVE",
     buildersCount: 1284,
     submissionsCount: 367,
     summary:
@@ -75,7 +79,7 @@ export async function scoreTransaction(tx: TransactionEvent) {
     leaderboard: [
       { rank: 1, username: "k.iyer", score: 98.4, latencyMs: 24, testsPassed: "412/412", avatar: "KI" },
       { rank: 2, username: "marco.dev", score: 96.1, latencyMs: 31, testsPassed: "412/412", avatar: "MD" },
-      { rank: 3, username: "sanjai_builder", score: 95.7, latencyMs: 38, testsPassed: "412/412", avatar: "SG" },
+      { rank: 3, username: "alex.cloud", score: 95.7, latencyMs: 38, testsPassed: "412/412", avatar: "AC" },
       { rank: 4, username: "dev_99", score: 94.2, latencyMs: 44, testsPassed: "408/412", avatar: "D9" },
     ],
   },
@@ -87,6 +91,8 @@ export async function scoreTransaction(tx: TransactionEvent) {
     category: "Distributed Systems",
     difficulty: "Expert",
     deadline: "2026-11-28T18:00:00Z",
+    startDate: "2026-11-05T00:00:00Z",
+    status: "ACTIVE",
     buildersCount: 942,
     submissionsCount: 281,
     summary:
@@ -111,7 +117,7 @@ export async function scoreTransaction(tx: TransactionEvent) {
 }`,
     leaderboard: [
       { rank: 1, username: "s.patel", score: 99.1, latencyMs: 14, testsPassed: "512/512", avatar: "SP" },
-      { rank: 2, username: "sanjai_builder", score: 96.8, latencyMs: 19, testsPassed: "512/512", avatar: "SG" },
+      { rank: 2, username: "h.tanaka", score: 96.8, latencyMs: 19, testsPassed: "512/512", avatar: "HT" },
       { rank: 3, username: "alex.go", score: 94.3, latencyMs: 25, testsPassed: "506/512", avatar: "AG" },
     ],
   },
@@ -123,6 +129,8 @@ export async function scoreTransaction(tx: TransactionEvent) {
     category: "Applied AI / LLM",
     difficulty: "Advanced",
     deadline: "2026-11-30T12:00:00Z",
+    startDate: "2026-11-10T00:00:00Z",
+    status: "ACTIVE",
     buildersCount: 1605,
     submissionsCount: 419,
     summary:
@@ -144,7 +152,7 @@ export async function scoreTransaction(tx: TransactionEvent) {
   return { grade: "A+", score: 97.4, passed: true };
 }`,
     leaderboard: [
-      { rank: 1, username: "sanjai_builder", score: 97.4, latencyMs: 42, testsPassed: "384/384", avatar: "SG" },
+      { rank: 1, username: "j.chen", score: 97.4, latencyMs: 42, testsPassed: "384/384", avatar: "JC" },
       { rank: 2, username: "elena.ai", score: 96.5, latencyMs: 51, testsPassed: "384/384", avatar: "EA" },
       { rank: 3, username: "dev_99", score: 93.8, latencyMs: 64, testsPassed: "372/384", avatar: "D9" },
     ],

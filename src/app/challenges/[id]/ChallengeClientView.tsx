@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Challenge } from "@/lib/challenges";
+import { useState, useEffect, useRef, type KeyboardEvent } from "react";
+import type { Challenge, LeaderboardEntry } from "@/lib/challenges";
 import { Check, ArrowRight } from "@/components/icons";
 
 interface Props {
@@ -27,6 +27,7 @@ function computeTimeRemaining(deadlineStr: string) {
 
 export default function ChallengeClientView({ challenge }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>("specs");
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Immediate initial countdown computation from challenge.deadline
   const [timeLeft, setTimeLeft] = useState(() =>
@@ -48,6 +49,7 @@ export default function ChallengeClientView({ challenge }: Props) {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(challenge.leaderboard);
   const [submissionResult, setSubmissionResult] = useState<{
     passed: boolean;
     score: number;
@@ -76,12 +78,30 @@ export default function ChallengeClientView({ challenge }: Props) {
     // Simulate multi-stage automated sandbox evaluation
     setTimeout(() => {
       setSubmitting(false);
-      setSubmissionResult({
+      const result = {
         passed: true,
         score: 96.4,
         latency: 34,
         grade: "A+",
         casesPassed: "412/412",
+      };
+      setSubmissionResult(result);
+
+      // Add user submission to live local leaderboard
+      const userEntry: LeaderboardEntry = {
+        rank: 2,
+        username: "you (verified)",
+        score: result.score,
+        latencyMs: result.latency,
+        testsPassed: result.casesPassed,
+        avatar: "YOU",
+        isCurrentUser: true,
+      };
+
+      setLeaderboard((prev) => {
+        const withoutUser = prev.filter((p) => !p.isCurrentUser);
+        const combined = [...withoutUser, userEntry].sort((a, b) => b.score - a.score);
+        return combined.map((entry, idx) => ({ ...entry, rank: idx + 1 }));
       });
     }, 1200);
   };
@@ -92,6 +112,29 @@ export default function ChallengeClientView({ challenge }: Props) {
     { id: "leaderboard", label: "Live Leaderboard" },
     { id: "submit", label: "Submit Solution" },
   ];
+
+  // WAI-ARIA roving keyboard navigation across tabs
+  const handleTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    let nextIndex = currentIndex;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      nextIndex = (currentIndex + 1) % tabs.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      nextIndex = 0;
+    } else if (e.key === "End") {
+      e.preventDefault();
+      nextIndex = tabs.length - 1;
+    }
+
+    if (nextIndex !== currentIndex) {
+      setActiveTab(tabs[nextIndex].id);
+      tabRefs.current[nextIndex]?.focus();
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -123,7 +166,7 @@ export default function ChallengeClientView({ challenge }: Props) {
         </div>
         <div>
           <p className="font-mono text-xs uppercase tracking-wider text-muted dark:text-muted-dark">
-            Closes In
+            {timeLeft.isExpired ? "Status" : "Closes In"}
           </p>
           <p className="mt-1 font-mono text-xl font-bold text-ink dark:text-paper">
             {timeLeft.isExpired
@@ -133,21 +176,28 @@ export default function ChallengeClientView({ challenge }: Props) {
         </div>
       </div>
 
-      {/* Accessible Tab Navigation */}
+      {/* Accessible Tab Navigation with WAI-ARIA Roving Focus */}
       <div
         role="tablist"
         aria-label="Challenge details"
         className="flex flex-wrap gap-2 border-b border-ink/10 pb-3 dark:border-ink-line"
       >
-        {tabs.map((t) => {
+        {tabs.map((t, idx) => {
           const isSelected = activeTab === t.id;
           return (
             <button
               key={t.id}
+              ref={(el) => {
+                tabRefs.current[idx] = el;
+              }}
+              id={`tab-${t.id}`}
               role="tab"
               type="button"
               aria-selected={isSelected}
+              aria-controls={`panel-${t.id}`}
+              tabIndex={isSelected ? 0 : -1}
               onClick={() => setActiveTab(t.id)}
+              onKeyDown={(e) => handleTabKeyDown(e, idx)}
               className={`min-h-11 px-4 py-2 inline-flex items-center justify-center rounded-lg font-mono text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                 isSelected
                   ? "bg-accent text-ink font-bold shadow-sm"
@@ -160,9 +210,15 @@ export default function ChallengeClientView({ challenge }: Props) {
         })}
       </div>
 
-      {/* Tab Panels */}
+      {/* Tab Panels with WAI-ARIA APG Attributes */}
       {activeTab === "specs" && (
-        <div className="space-y-6">
+        <div
+          role="tabpanel"
+          id="panel-specs"
+          aria-labelledby="tab-specs"
+          tabIndex={0}
+          className="space-y-6 focus:outline-none"
+        >
           <div className="rounded-xl border border-ink/10 bg-paper-card p-6 dark:border-ink-line dark:bg-ink-soft">
             <h2 className="font-display text-xl font-bold text-ink dark:text-paper">
               Problem Statement
@@ -206,7 +262,13 @@ export default function ChallengeClientView({ challenge }: Props) {
       )}
 
       {activeTab === "evaluation" && (
-        <div className="rounded-xl border border-ink/10 bg-paper-card p-6 dark:border-ink-line dark:bg-ink-soft">
+        <div
+          role="tabpanel"
+          id="panel-evaluation"
+          aria-labelledby="tab-evaluation"
+          tabIndex={0}
+          className="rounded-xl border border-ink/10 bg-paper-card p-6 dark:border-ink-line dark:bg-ink-soft focus:outline-none"
+        >
           <h2 className="font-display text-xl font-bold text-ink dark:text-paper">
             Evaluation Rubric &amp; Weighting
           </h2>
@@ -244,7 +306,13 @@ export default function ChallengeClientView({ challenge }: Props) {
       )}
 
       {activeTab === "leaderboard" && (
-        <div className="rounded-xl border border-ink/10 bg-paper-card p-6 dark:border-ink-line dark:bg-ink-soft">
+        <div
+          role="tabpanel"
+          id="panel-leaderboard"
+          aria-labelledby="tab-leaderboard"
+          tabIndex={0}
+          className="rounded-xl border border-ink/10 bg-paper-card p-6 dark:border-ink-line dark:bg-ink-soft focus:outline-none"
+        >
           <div className="flex items-center justify-between border-b border-ink/10 pb-4 dark:border-ink-line">
             <div>
               <h2 className="font-display text-xl font-bold text-ink dark:text-paper">
@@ -260,15 +328,25 @@ export default function ChallengeClientView({ challenge }: Props) {
           </div>
 
           <div className="mt-4 space-y-2">
-            {challenge.leaderboard.map((entry) => (
+            {leaderboard.map((entry) => (
               <div
-                key={entry.rank}
-                className="flex items-center gap-3 rounded-lg border border-ink/10 bg-paper p-3 dark:border-ink-line dark:bg-ink transition-colors"
+                key={entry.username}
+                className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                  entry.isCurrentUser
+                    ? "border-accent bg-accent/10 dark:border-accent dark:bg-accent/15"
+                    : "border-ink/10 bg-paper dark:border-ink-line dark:bg-ink"
+                }`}
               >
                 <span className="w-6 font-mono text-sm font-bold text-muted dark:text-muted-dark">
                   #{entry.rank}
                 </span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/20 font-mono text-xs font-bold text-accent">
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full font-mono text-xs font-bold ${
+                    entry.isCurrentUser
+                      ? "bg-accent text-ink"
+                      : "bg-accent/20 text-accent"
+                  }`}
+                >
                   {entry.avatar}
                 </span>
                 <div>
@@ -294,7 +372,13 @@ export default function ChallengeClientView({ challenge }: Props) {
       )}
 
       {activeTab === "submit" && (
-        <div className="rounded-xl border border-ink/10 bg-paper-card p-6 sm:p-8 dark:border-ink-line dark:bg-ink-soft">
+        <div
+          role="tabpanel"
+          id="panel-submit"
+          aria-labelledby="tab-submit"
+          tabIndex={0}
+          className="rounded-xl border border-ink/10 bg-paper-card p-6 sm:p-8 dark:border-ink-line dark:bg-ink-soft focus:outline-none"
+        >
           <h2 className="font-display text-xl font-bold text-ink dark:text-paper">
             Submit Solution for Evaluation
           </h2>
@@ -350,22 +434,27 @@ export default function ChallengeClientView({ challenge }: Props) {
             </div>
 
             {errorMessage && (
-              <p role="alert" className="text-xs font-semibold text-red-500">
+              <div
+                role="alert"
+                className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-500"
+              >
                 {errorMessage}
-              </p>
+              </div>
             )}
 
             <button
               type="submit"
               disabled={submitting || timeLeft.isExpired}
-              className="mt-2 min-h-11 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-mono text-xs font-bold text-ink transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-accent inline-flex w-full items-center justify-center gap-2 sm:w-auto"
             >
-              {timeLeft.isExpired
-                ? "Submissions Closed"
-                : submitting
-                ? "Spawning evaluation sandbox…"
-                : "Execute Sandbox Evaluation"}
-              <ArrowRight width={14} height={14} strokeWidth={2.5} />
+              {submitting ? (
+                <span>Evaluating in sandbox...</span>
+              ) : (
+                <>
+                  <span>Run Sandbox Tests</span>
+                  <ArrowRight width={16} height={16} />
+                </>
+              )}
             </button>
           </form>
 
@@ -374,21 +463,37 @@ export default function ChallengeClientView({ challenge }: Props) {
             <div
               role="status"
               aria-live="polite"
-              className="mt-6 rounded-lg border border-accent/40 bg-accent/10 p-5"
+              className="mt-6 rounded-xl border border-accent/30 bg-accent/5 p-5 dark:border-accent/40 dark:bg-accent/10"
             >
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-ink">
-                  <Check width={18} height={18} strokeWidth={2.4} />
-                </span>
-                <div>
-                  <h3 className="font-display text-base font-bold text-ink dark:text-paper">
-                    Evaluation Passed: {submissionResult.grade} ({submissionResult.score} pts)
-                  </h3>
-                  <p className="font-mono text-xs text-muted dark:text-muted-dark">
-                    Test cases: {submissionResult.casesPassed} · Execution latency: {submissionResult.latency}ms
-                  </p>
+              <div className="flex items-center gap-2 font-mono text-xs font-bold text-accent">
+                <Check width={14} height={14} strokeWidth={2.4} />
+                <span>Sandbox Verification Passed — Grade {submissionResult.grade}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-lg border border-ink/10 bg-paper p-2.5 dark:border-ink-line dark:bg-ink">
+                  <span className="block font-mono text-[10px] text-muted dark:text-muted-dark uppercase">Score</span>
+                  <span className="font-mono text-base font-bold text-ink dark:text-paper">{submissionResult.score}</span>
+                </div>
+                <div className="rounded-lg border border-ink/10 bg-paper p-2.5 dark:border-ink-line dark:bg-ink">
+                  <span className="block font-mono text-[10px] text-muted dark:text-muted-dark uppercase">p99 Latency</span>
+                  <span className="font-mono text-base font-bold text-ink dark:text-paper">{submissionResult.latency}ms</span>
+                </div>
+                <div className="rounded-lg border border-ink/10 bg-paper p-2.5 dark:border-ink-line dark:bg-ink">
+                  <span className="block font-mono text-[10px] text-muted dark:text-muted-dark uppercase">Edge Cases</span>
+                  <span className="font-mono text-base font-bold text-ink dark:text-paper">{submissionResult.casesPassed}</span>
                 </div>
               </div>
+              <p className="mt-3 text-xs text-ink/70 dark:text-paper/70">
+                Your submission has been verified and added to the{" "}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("leaderboard")}
+                  className="font-semibold text-accent underline underline-offset-2 hover:opacity-80"
+                >
+                  live leaderboard
+                </button>
+                .
+              </p>
             </div>
           )}
         </div>
