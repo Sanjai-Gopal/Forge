@@ -61,12 +61,6 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
-          <a
-            href="#waitlist"
-            className="px-2 py-1 text-sm font-medium text-ink/80 transition-colors hover:text-ink focus-visible:rounded-md dark:text-paper/80 dark:hover:text-paper"
-          >
-            Sign in
-          </a>
           <a href="#waitlist" className="btn-accent">
             Get started
             <ArrowRight width={16} height={16} />
@@ -100,7 +94,7 @@ export default function Navbar() {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-3 text-base font-medium text-ink/80 hover:bg-ink/5 dark:text-paper/80 dark:hover:bg-white/5"
+              className="min-h-11 inline-flex items-center rounded-lg px-3 py-2 text-base font-medium text-ink/80 hover:bg-ink/5 dark:text-paper/80 dark:hover:bg-white/5"
             >
               {l.label}
             </a>
@@ -109,16 +103,10 @@ export default function Navbar() {
             <a
               href="#waitlist"
               onClick={() => setOpen(false)}
-              className="px-3 py-2 text-base font-medium text-ink/80 dark:text-paper/80"
+              className="btn-accent min-h-11 inline-flex items-center justify-center text-center font-medium gap-2"
             >
-              Sign in
-            </a>
-            <a
-              href="#waitlist"
-              onClick={() => setOpen(false)}
-              className="btn-accent text-center"
-            >
-              Get started
+              <span>Get started</span>
+              <ArrowRight width={16} height={16} />
             </a>
           </div>
         </div>

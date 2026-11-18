@@ -114,10 +114,13 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (err: unknown) {
+    // Log exception details server-side while keeping client response leak-free
+    console.error("Storage error processing lead submission:", err);
     return NextResponse.json(
       {
         ok: false,
-        error: (err as Error).message || "Failed to save lead",
+        error: "Internal server error. Failed to save lead.",
+        message: "Internal server error. Failed to save lead.",
       },
       { status: 500 }
     );
