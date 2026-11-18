@@ -1,8 +1,27 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { themeInitScript } from "@/lib/theme-script";
 import { SITE_URL, SITE_CONFIG } from "@/lib/constants";
 import "./globals.css";
+
+const display = localFont({
+  src: "./fonts/bricolage.woff2",
+  variable: "--font-display",
+  display: "swap",
+});
+
+const sans = localFont({
+  src: "./fonts/hanken.woff2",
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = localFont({
+  src: "./fonts/jetbrains.woff2",
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   themeColor: [
@@ -32,7 +51,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{ __html: themeInitScript }}
