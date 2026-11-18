@@ -28,7 +28,7 @@ describe("telemetry: getPlatformTelemetry", () => {
   });
 
   it("updates platform telemetry when new leads register", async () => {
-    const beforeCount = await leadCount();
+    const beforeTelemetry = await getPlatformTelemetry();
     const uniqueEmail = `telemetry_test_${Date.now()}@example.com`;
 
     await addLead({
@@ -39,6 +39,6 @@ describe("telemetry: getPlatformTelemetry", () => {
     });
 
     const updatedTelemetry = await getPlatformTelemetry();
-    expect(updatedTelemetry.waitlistRegistrations).toBe(beforeCount + 1);
+    expect(updatedTelemetry.waitlistRegistrations).toBe(beforeTelemetry.waitlistRegistrations + 1);
   });
 });
